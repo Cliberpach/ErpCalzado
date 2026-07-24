@@ -11,6 +11,12 @@
 @section('content')
     @include('ventas.cotizaciones.modal-cliente')
 
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong>Nuevo:</strong> ya se pueden crear pedidos con 100% de descuento en los items.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
 
     <div class="wrapper wrapper-content animated fadeInRight">
 
@@ -699,6 +705,23 @@
             })
         }
 
+        //==== TALLAS CON AL MENOS 1 UNIDAD EN ALGÚN ITEM DEL CARRITO ====
+        function obtenerTallasActivas(carrito, tallas) {
+            return tallas.filter((t) => {
+                return carrito.some((c) => {
+                    return c.tallas.some((ct) => ct.talla_id == t.id && parseFloat(ct.cantidad) > 0);
+                });
+            });
+        }
+
+        //==== MOSTRAR/OCULTAR COLUMNAS DEL HEADER SEGÚN TALLAS ACTIVAS ====
+        function actualizarColumnasTallas(tallasActivas) {
+            document.querySelectorAll('#table-detalle-pedido thead th[data-talla]').forEach((th) => {
+                const esActiva = tallasActivas.some((t) => t.id == th.getAttribute('data-talla'));
+                th.style.display = esActiva ? '' : 'none';
+            });
+        }
+
         //========= PINTAR DETALLE PEDIDO =======
         function pintarDetallePedido(carrito) {
             let fila = ``;
@@ -706,6 +729,9 @@
             const bodyDetalleTable = document.querySelector('#table-detalle-pedido tbody');
             const tallas = @json($tallas);
             clearTabla(bodyDetalleTable);
+
+            const tallasActivas = obtenerTallasActivas(carrito, tallas);
+            actualizarColumnasTallas(tallasActivas);
 
             carrito.forEach((c) => {
                 htmlTallas = ``;
@@ -722,7 +748,7 @@
 
 
                 //tallas
-                tallas.forEach((t) => {
+                tallasActivas.forEach((t) => {
                     let cantidad = c.tallas.filter((ct) => {
                         return t.id == ct.talla_id;
                     });

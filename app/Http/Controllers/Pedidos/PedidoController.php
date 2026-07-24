@@ -273,6 +273,7 @@ array:18 [
                 }
             }
 
+          
             //====== REGISTRO DE ACTIVIDAD ========
             $descripcion = "SE AGREGÓ EL PEDIDO CON LA FECHA: " . Carbon::parse($pedido->fecha_registro)->format('d/m/y');
             $gestion = "PEDIDO";
@@ -294,16 +295,19 @@ array:18 [
             throw new Exception("EL DETALLE DEL PEDIDO ESTÁ VACÍO");
         }
 
-        $monto_subtotal     =   0.0;
-        $monto_embalaje     =   $amountsPedido->embalaje ?? 0;
-        $monto_envio        =   $amountsPedido->envio ?? 0;
-        $monto_total        =   0.0;
-        $monto_igv          =   0.0;
-        $monto_total_pagar  =   0.0;
-        $monto_descuento    =   $amountsPedido->monto_descuento ?? 0;
+        $monto_subtotal         =   0.0;
+        $monto_subtotal_bruto   =   0.0;
+        $monto_embalaje         =   $amountsPedido->embalaje ?? 0;
+        $monto_envio            =   $amountsPedido->envio ?? 0;
+        $monto_total            =   0.0;
+        $monto_igv              =   0.0;
+        $monto_total_pagar      =   0.0;
+        $monto_descuento        =   $amountsPedido->monto_descuento ?? 0;
 
         foreach ($lstPedido as $producto) {
             foreach ($producto->tallas as $talla) {
+                $monto_subtotal_bruto   +=  ($talla->cantidad * $producto->precio_venta);
+
                 if (floatval($producto->porcentaje_descuento) == 0) {
                     $monto_subtotal +=  ($talla->cantidad * $producto->precio_venta);
                 } else {
@@ -315,7 +319,7 @@ array:18 [
         $monto_total_pagar      =   $monto_subtotal + $monto_embalaje + $monto_envio;
         $monto_total            =   $monto_total_pagar / 1.18;
         $monto_igv              =   $monto_total_pagar - $monto_total;
-        $porcentaje_descuento   =   ($monto_descuento * 100) / ($monto_total_pagar);
+        $porcentaje_descuento   =   $monto_subtotal_bruto > 0 ? ($monto_descuento * 100) / $monto_subtotal_bruto : 0;
 
         return (object)[
             'monto_embalaje'        =>  $monto_embalaje,
@@ -805,7 +809,7 @@ array:11 [
                     return $orden[$t->descripcion] ?? 99;
                 })
                 ->values();
-       
+
             $tipoVentas         =   tipos_venta()
                 ->whereIn('id', [129])
                 ->where('estado', 'ACTIVO');
@@ -1545,6 +1549,11 @@ array:2 [
             }
             if ($cliente->tipo_documento === 'DNI') {
                 $tipos_ventas   =   $tipos_ventas->where('id', '<>', 127);
+            }
+
+            //===== RETIRAR BOLETA ELECTRÓNICA SI EL MONTO ES CERO (GREENTER NO ADMITE 0) =====
+            if ((float) $pedido->total_pagar === 0.0) {
+                $tipos_ventas   =   $tipos_ventas->where('id', '<>', 128);
             }
 
             return view(

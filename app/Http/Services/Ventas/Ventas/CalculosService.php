@@ -49,8 +49,8 @@ class CalculosService
         $monto_total_pagar      =   $monto_subtotal + $monto_embalaje + $monto_envio - $monto_anticipo;
         $monto_total            =   $monto_total_pagar / 1.18;
         $monto_igv              =   $monto_total_pagar - $monto_total;
-        $porcentaje_descuento   =   ($monto_descuento * 100) / ($monto_total_pagar + $monto_anticipo);
         $monto_descuento        =   $monto_subtotal_ant - $monto_subtotal;
+        $porcentaje_descuento   =   $monto_subtotal_ant > 0 ? ($monto_descuento * 100) / $monto_subtotal_ant : 0;
 
         //========= CALCULAR LOS MONTOS DE SUNAT =========
         if ($monto_anticipo == 0) {

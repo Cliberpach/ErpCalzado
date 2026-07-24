@@ -1,25 +1,16 @@
 @extends('layout')
-@section('content')
-    @include('ventas.cotizaciones.modal-cliente')
 
 @section('pedidos-active', 'active')
 @section('pedido-active', 'active')
 
+@section('bread-module', 'Pedidos')
+@section('bread-submodule', 'Pedidos')
+@section('hero-title', 'Modificar Pedido')
+@section('hero-subtitle', 'Pedidos')
 
+@section('content')
+    @include('ventas.cotizaciones.modal-cliente')
 <div class="row wrapper border-bottom white-bg page-heading">
-
-    <div class="col-lg-7 col-md-7">
-        <h2 style="text-transform:uppercase"><b>Modificar Pedido #{{ $pedido->id }}</b></h2>
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="{{ route('home') }}">Panel de Control</a>
-            </li>
-            <li class="breadcrumb-item active">
-                <strong>Pedidos</strong>
-            </li>
-        </ol>
-    </div>
-
     <div class="col-lg-5 col-md-5 col-sm-12 col-xs-12 mb-3 mt-3 d-flex align-items-center justify-content-center">
         <div class="alert alert-warning alert-dismissible fade show m-0" role="alert">
             <strong>Holy {{ Auth::user()->usuario }}!</strong> Los pedidos ATENDIDOS no pueden cambiarse de almacén!!!
@@ -165,8 +156,8 @@
         </div>
     </div>
 </div>
+@endsection
 
-@stop
 @push('styles')
 <style>
     .search-length-container {
@@ -902,6 +893,23 @@
         })
     }
 
+    //==== TALLAS CON AL MENOS 1 UNIDAD EN ALGÚN ITEM DEL CARRITO ====
+    function obtenerTallasActivas(carrito, tallas) {
+        return tallas.filter((t) => {
+            return carrito.some((c) => {
+                return c.tallas.some((ct) => ct.talla_id == t.id && parseFloat(ct.cantidad) > 0);
+            });
+        });
+    }
+
+    //==== MOSTRAR/OCULTAR COLUMNAS DEL HEADER SEGÚN TALLAS ACTIVAS ====
+    function actualizarColumnasTallas(tallasActivas) {
+        document.querySelectorAll('#table-detalle-pedido thead th[data-talla]').forEach((th) => {
+            const esActiva = tallasActivas.some((t) => t.id == th.getAttribute('data-talla'));
+            th.style.display = esActiva ? '' : 'none';
+        });
+    }
+
     //========= PINTAR DETALLE PEDIDO =======
     function pintarDetallePedido(carrito) {
         let fila = ``;
@@ -909,6 +917,9 @@
         const bodyDetalleTable = document.querySelector('#table-detalle-pedido tbody');
         const tallas = @json($tallas);
         clearTabla(bodyDetalleTable);
+
+        const tallasActivas = obtenerTallasActivas(carrito, tallas);
+        actualizarColumnasTallas(tallasActivas);
 
         carrito.forEach((c) => {
             htmlTallas = ``;
@@ -925,7 +936,7 @@
 
 
             //tallas
-            tallas.forEach((t) => {
+            tallasActivas.forEach((t) => {
                 let cantidad = c.tallas.filter((ct) => {
                     return t.id == ct.talla_id;
                 });
@@ -975,7 +986,7 @@
 
         $('#precio_venta').trigger('change');
     }
-    
+
     //===== LIMPIAR INPUTS DEL TABLERO PRODUCTOS ======
     function clearInputsCantidad() {
         const inputsCantidad = document.querySelectorAll('.inputCantidad');
