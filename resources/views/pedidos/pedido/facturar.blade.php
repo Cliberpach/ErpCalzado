@@ -9,6 +9,15 @@
 @section('hero-subtitle', 'Pedidos')
 
 @section('content')
+    @if ((float) $pedido->total_pagar === 0.0)
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <strong>Atención:</strong> los pedidos con monto S/. 0.00 solo se pueden facturar con Nota de Venta.
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
     <div class="wrapper wrapper-content animated fadeInRight">
 
         <div class="row">
