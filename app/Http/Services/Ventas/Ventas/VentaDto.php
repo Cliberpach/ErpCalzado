@@ -193,6 +193,11 @@ class VentaDto
 
         $dto['telefono'] = $data->telefono;
 
+        // monto total 0: pagado automáticamente, no requiere pago manual
+        if ((float) $montos->monto_total_pagar === 0.0) {
+            $dto['estado_pago'] = 'PAGADA';
+        }
+
         return $dto;
     }
 }
