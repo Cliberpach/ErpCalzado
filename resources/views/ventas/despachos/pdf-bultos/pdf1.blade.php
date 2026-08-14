@@ -180,7 +180,7 @@
       <tr style="width: 100%;">
         <td class="logo-cell logo" >
           @if($empresa->ruta_logo)
-            <img src="{{ base_path() . '/storage/app/'.$empresa->ruta_logo }}" class="img-fluid" style="width:50%;">
+            <img src="{{ storage_path('app/public/' . preg_replace('#^public/#', '', $empresa->ruta_logo)) }}" class="img-fluid" style="width:50%;">
           @else
             <img src="{{ public_path() . '/img/default.png' }}" class="img-fluid">
           @endif

@@ -157,7 +157,7 @@
             <div class="logo">
                 <div class="logo-img">
                     @if($empresa->ruta_logo)
-                    <img src="{{ base_path() . '/storage/app/'.$empresa->ruta_logo }}" class="img-fluid">
+                    <img src="{{ storage_path('app/public/' . preg_replace('#^public/#', '', $empresa->ruta_logo)) }}" class="img-fluid">
                     @else
                     <img src="{{ public_path() . '/img/default.png' }}" class="img-fluid">
                     @endif

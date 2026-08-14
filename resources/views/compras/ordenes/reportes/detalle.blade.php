@@ -413,7 +413,7 @@ footer {
         <div>
             <div id="logo">
                 @if($orden->empresa->ruta_logo)
-                <img src="{{ base_path() . '/storage/app/'.$orden->empresa->ruta_logo }}">
+                <img src="{{ storage_path('app/public/' . preg_replace('#^public/#', '', $orden->empresa->ruta_logo)) }}">
                 @else
                 <img src="{{ public_path().'/img/default.png' }}">
                 @endif

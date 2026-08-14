@@ -117,7 +117,7 @@
                                 <tr>
                                     <td style="padding-left: 5px;padding-bottom:7px;padding-top:7px;">
                                         @if($empresa->ruta_logo)
-                                            <img src="{{ base_path() . '/storage/app/'.$empresa->ruta_logo }}"  class="img-fluid" style="height: 20px;object-fit:cover;"> 
+                                            <img src="{{ storage_path('app/public/' . preg_replace('#^public/#', '', $empresa->ruta_logo)) }}"  class="img-fluid" style="height: 20px;object-fit:cover;"> 
                                         @else
                                             <img src="{{ public_path() . '/img/default.png' }}" class="img-fluid">
                                         @endif

@@ -170,7 +170,7 @@
         <div class="cabecera">
             <div class="logo">
                 <div class="logo-img">
-                    <img src="{{ base_path() . '/storage/app/'.$empresa->ruta_logo }}" class="img-fluid">
+                    <img src="{{ storage_path('app/public/' . preg_replace('#^public/#', '', $empresa->ruta_logo)) }}" class="img-fluid">
                 </div>
             </div>
             <div class="empresa">

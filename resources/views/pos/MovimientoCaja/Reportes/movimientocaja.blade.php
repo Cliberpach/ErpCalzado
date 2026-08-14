@@ -73,7 +73,7 @@
 <div class="cabecera">
     <div class="logo">
         @if ($empresa->ruta_logo)
-            <img src="{{ base_path() . '/storage/app/' . $empresa->ruta_logo }}" alt="logo">
+            <img src="{{ storage_path('app/public/' . preg_replace('#^public/#', '', $empresa->ruta_logo)) }}" alt="logo">
         @else
             <img src="{{ public_path() . '/img/default.png' }}" alt="logo">
         @endif
