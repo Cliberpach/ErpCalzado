@@ -196,7 +196,7 @@ class MetodoEntregaController extends Controller
 
         $rules = [
             'agencia'           => 'required',
-            'direccion'         => 'required',
+            'direccion'         => 'required|max:300',
             'departamento'      => 'required',
             'provincia'         => 'required',
             'distrito'          => 'required',
@@ -205,6 +205,7 @@ class MetodoEntregaController extends Controller
         $messages = [
             'agencia.required'     => 'El campo agencia es obligatorio.',
             'direccion.required'   => 'El campo dirección es obligatorio.',
+            'direccion.max'        => 'La dirección no debe superar los 300 caracteres.',
             'departamento.required' => 'El campo departamento es obligatorio.',
             'provincia.required'    => 'El campo provincia es obligatorio.',
             'distrito.required'     => 'El campo distrito es obligatorio.',
@@ -272,7 +273,7 @@ class MetodoEntregaController extends Controller
         $rules = [
             'agencia'           => 'required',
             'sede'              =>  'required',
-            'direccion'         => 'required',
+            'direccion'         => 'required|max:300',
             'departamento'      => 'required',
             'provincia'         => 'required',
             'distrito'          => 'required',
@@ -282,6 +283,7 @@ class MetodoEntregaController extends Controller
             'agencia.required'      => 'El campo agencia es obligatorio.',
             'sede.required'         => 'La sede es requerida',
             'direccion.required'    => 'El campo dirección es obligatorio.',
+            'direccion.max'         => 'La dirección no debe superar los 300 caracteres.',
             'departamento.required' => 'El campo departamento es obligatorio.',
             'provincia.required'    => 'El campo provincia es obligatorio.',
             'distrito.required'     => 'El campo distrito es obligatorio.',
