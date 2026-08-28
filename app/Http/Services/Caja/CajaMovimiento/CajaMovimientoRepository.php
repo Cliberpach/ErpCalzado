@@ -49,9 +49,9 @@ class CajaMovimientoRepository
 
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
         $rows = DB::select(
-            "SELECT cd.id, cd.serie, cd.correlativo, tv.descripcion AS tipo
+            "SELECT cd.id, cd.serie, cd.correlativo,
+                    NULLIF(cd.tipo_venta_nombre, '') AS tipo
              FROM cotizacion_documento cd
-             LEFT JOIN tabla_detalles tv ON tv.id = cd.tipo_venta_id
              WHERE cd.id IN ({$placeholders})",
             $ids
         );
