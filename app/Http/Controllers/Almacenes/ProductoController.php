@@ -56,23 +56,27 @@ class ProductoController extends Controller
     {
         $this->authorize('haveaccess', 'almacen.producto.index');
 
-        $productos  =    DB::table('productos')
-            ->join('marcas', 'productos.marca_id', '=', 'marcas.id')
-            ->join('categorias', 'categorias.id', '=', 'productos.categoria_id')
-            ->join('modelos', 'modelos.id', '=', 'productos.modelo_id')
-            ->select(
+        $columnas = array_merge(
+            columnasPublicasProducto('productos'),
+            [
                 'categorias.descripcion as categoria',
                 'modelos.descripcion as modelo',
                 'marcas.marca',
-                'productos.*',
                 DB::raw('(SELECT COUNT(*) FROM producto_color_imagenes WHERE producto_id = productos.id) as total_imagenes'),
                 DB::raw("(SELECT GROUP_CONCAT(DISTINCT c.descripcion ORDER BY c.descripcion SEPARATOR ';;')
                           FROM producto_colores pc
                           JOIN colores c ON c.id = pc.color_id
                           WHERE pc.producto_id = productos.id
                             AND pc.estado = 'ACTIVO'
-                            AND c.estado = 'ACTIVO') as colores_data")
-            )
+                            AND c.estado = 'ACTIVO') as colores_data"),
+            ]
+        );
+
+        $productos  =    DB::table('productos')
+            ->join('marcas', 'productos.marca_id', '=', 'marcas.id')
+            ->join('categorias', 'categorias.id', '=', 'productos.categoria_id')
+            ->join('modelos', 'modelos.id', '=', 'productos.modelo_id')
+            ->select($columnas)
             ->orderBy('productos.id', 'DESC')
             ->where('productos.estado', 'ACTIVO')
             ->get();
@@ -303,6 +307,12 @@ array:13 [
 
         $producto = Producto::where('id', $id)->where('estado', 'ACTIVO')->first();
 
+        // El modelo Producto no declara $hidden, así que se serializa entero.
+        // Sin el permiso estricto, el costo no debe salir en el JSON.
+        if ($producto && !puedeVerCosto()) {
+            $producto->makeHidden(['costo', 'precio_compra']);
+        }
+
         $resultado = [
             'cliente_producto' => $cliente_producto,
             'producto' => $producto,
@@ -313,6 +323,12 @@ array:13 [
     public function productoDescripcion($id)
     {
         $producto = Producto::findOrFail($id);
+
+        // Mismo criterio que obtenerProducto: sin permiso, el costo no viaja.
+        if (!puedeVerCosto()) {
+            $producto->makeHidden(['costo', 'precio_compra']);
+        }
+
         return $producto;
     }
 
@@ -638,18 +654,20 @@ array:13 [
             ->join('marcas as ma', 'p.marca_id', '=', 'ma.id')
             ->join('categorias as ca', 'ca.id', '=', 'p.categoria_id')
             ->join('modelos as mo', 'mo.id', '=', 'p.modelo_id')
-            ->select(
-                'ca.descripcion as categoria',
-                'mo.descripcion as modelo',
-                'ma.marca',
-                'p.*',
-                DB::raw("(
+            ->select(array_merge(
+                columnasPublicasProducto('p'),
+                [
+                    'ca.descripcion as categoria',
+                    'mo.descripcion as modelo',
+                    'ma.marca',
+                    DB::raw("(
                     SELECT GROUP_CONCAT(co.descripcion)
                     FROM producto_colores pc
                     JOIN colores co ON co.id = pc.color_id
                     WHERE pc.producto_id = p.id
-                ) as colores")
-            )
+                ) as colores"),
+                ]
+            ))
             ->where('p.estado', 'ACTIVO')
             ->orderBy('p.id', 'DESC');;
 

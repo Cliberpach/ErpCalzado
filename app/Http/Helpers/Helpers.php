@@ -22,6 +22,7 @@ use App\Mantenimiento\Empresa\Empresa;
 //Bitacora de actividades
 use Spatie\Activitylog\Contracts\Activity;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 //Facturacion Electronica
 use Illuminate\Support\Facades\Http;
@@ -2363,6 +2364,92 @@ if (!function_exists('FechaActual')) {
         $fecha = Carbon::parse($fecha);
         $fecha = $fecha->format("Y-m-d");
         return $fecha;
+    }
+}
+
+if (!function_exists('puedeVerCosto')) {
+    /**
+     * ¿El usuario autenticado puede ver el costo del producto?
+     *
+     * Único punto de verdad del slug del permiso. Usa el Gate ESTRICTO: los
+     * roles con full-access = 'SI' NO lo heredan; hay que asignar el permiso
+     * 'almacen.producto.ver_costo' a un rol con full-access = 'NO' desde la
+     * pantalla de Roles.
+     *
+     * En las vistas Blade puede usarse también:
+     *     @can('haveaccess.estricto', 'almacen.producto.ver_costo')
+     */
+    function puedeVerCosto(): bool
+    {
+        if (!Auth::check()) {
+            return false;
+        }
+
+        return Gate::allows('haveaccess.estricto', 'almacen.producto.ver_costo');
+    }
+}
+
+if (!function_exists('columnasPublicasProducto')) {
+    /**
+     * Columnas de la tabla productos que pueden viajar al navegador, con el alias
+     * indicado ('productos', 'p', ...).
+     *
+     * Excluye las columnas de costo; sólo se añaden si el usuario supera
+     * puedeVerCosto(), es decir el permiso ESTRICTO que los roles con
+     * full-access NO heredan.
+     *
+     * Se enumeran una a una en lugar de usar SELECT *: con el comodín el costo
+     * salía en el JSON de cada fila aunque la tabla no lo pintase nunca, y basta
+     * con abrir la pestaña de red del navegador para leerlo.
+     */
+    function columnasPublicasProducto(string $alias = 'productos'): array
+    {
+        $columnas = [
+            'id',
+            'categoria_id',
+            'marca_id',
+            'modelo_id',
+            'almacen_id',
+            'codigo',
+            'nombre',
+            'descripcion',
+            'medida',
+            'codigo_barra',
+            'stock_minimo',
+            'precio_venta_1',
+            'precio_venta_2',
+            'precio_venta_3',
+            'precio_venta_4',
+            'igv',
+            'facturacion',
+            'estado',
+            'tipo',
+            'mostrar_en_web',
+            'is_featured',
+            'is_sale',
+            'is_outlet',
+            'img1_ruta',
+            'img1_nombre',
+            'img2_ruta',
+            'img2_nombre',
+            'img3_ruta',
+            'img3_nombre',
+            'img4_ruta',
+            'img4_nombre',
+            'img5_ruta',
+            'img5_nombre',
+            'created_at',
+            'updated_at',
+        ];
+
+        if (puedeVerCosto()) {
+            $columnas[] = 'costo';
+            $columnas[] = 'precio_compra';
+        }
+
+        return array_map(function ($columna) use ($alias) {
+            return $alias . '.' . $columna;
+        }, $columnas);
     }
 }
 

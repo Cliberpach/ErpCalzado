@@ -129,6 +129,7 @@
                     <span style="font-weight: bold;color:red;" class="precio4_error msgErrorProducto"></span>
                 </div>
 
+                @can('haveaccess.estricto', 'almacen.producto.ver_costo')
                 <div class="col-lg-6 col-12 mb-3">
                     <label class="required">COSTO</label>
                     <input class="form-control {{ $errors->has('costo') ? ' is-invalid' : '' }}" type="number"
@@ -136,6 +137,7 @@
                         value="{{ old('costo') }}" />
                     <span style="font-weight: bold;color:red;" class="precio3_error msgErrorProducto"></span>
                 </div>
+                @endcan
 
                 <div class="col-lg-6 col-12 mb-3">
                     <label for="mostrar_en_web" class="required" style="font-weight: bold;">Mostrar en web</label>

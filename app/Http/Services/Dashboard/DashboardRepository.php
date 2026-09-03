@@ -263,7 +263,11 @@ class DashboardRepository
             ->count();
 
         return (object)[
-            'utilidad' => $utilidad->utilidad_total,
+            // La utilidad se deriva del costo: SUM((precio - costo) * cantidad).
+            // Sin el permiso estricto no debe salir del servidor, porque acotando
+            // el filtro a un mes con pocas ventas el costo se despeja con
+            // aritmética simple a partir del precio de venta, que sí es público.
+            'utilidad' => puedeVerCosto() ? $utilidad->utilidad_total : null,
             'total_ventas' => $total_ventas,
             'customer_actives' => $customer_actives,
             'promedio_ventas_cliente'   =>  $promedio_ventas_cliente->promedio_venta_cliente,

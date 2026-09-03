@@ -28,6 +28,16 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('haveaccess',function(User $user,$perm){
             return $user->havePermission($perm);
         });
+
+        /**
+         * Variante ESTRICTA: ignora full-access y exige que el permiso esté
+         * asignado explícitamente a alguno de los roles del usuario.
+         * Se usa para permisos que los administradores no deben heredar,
+         * como 'almacen.producto.ver_costo'.
+         */
+        Gate::define('haveaccess.estricto', function (User $user, $perm) {
+            return $user->haveExplicitPermission($perm);
+        });
         //
     }
 }

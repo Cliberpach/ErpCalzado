@@ -14,6 +14,10 @@ class UtilidadController extends Controller
     public function index()
     {
         $this->authorize('haveaccess', 'utilidad_mensual.index');
+        // La utilidad se calcula contra el costo, así que exige además el permiso
+        // ESTRICTO. Hoy esta pantalla está rota (usa dni.costo_soles, columna que
+        // no existe); el control se deja puesto para cuando alguien la repare.
+        $this->authorize('haveaccess.estricto', 'almacen.producto.ver_costo');
 
         $lstAnios = DB::table('lote_productos')
             ->select(DB::raw('year(created_at) as value'))
@@ -34,6 +38,8 @@ class UtilidadController extends Controller
 
     public function getDatos($mes, $anio)
     {
+        $this->authorize('haveaccess.estricto', 'almacen.producto.ver_costo');
+
         $fecini = $anio . '-' . $mes . '-01';
         $fecini = date('Y-m-d', strtotime($fecini));
         $fecfin = date('Y-m-d', strtotime($fecini . '+ 1 month'));

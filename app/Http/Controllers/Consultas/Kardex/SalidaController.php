@@ -39,7 +39,7 @@ class SalidaController extends Controller
                     'codigo' => $detalle->lote->producto->codigo,
                     'cantidad' => $detalle->cantidad,
                     'producto' => $detalle->lote->producto->nombre,
-                    'costo' => $detalle->lote->detalle_compra ? $detalle->lote->detalle_compra->precio : $detalle->lote->detalle_nota->costo_soles,
+                    'costo' => puedeVerCosto() ? ($detalle->lote->detalle_compra ? $detalle->lote->detalle_compra->precio : $detalle->lote->detalle_nota->costo_soles) : null,
                     'precio' => $detalle->precio_nuevo,
                     'importe' => number_format($detalle->precio_nuevo * $detalle->cantidad, 2)
                 ]);
@@ -78,8 +78,11 @@ class SalidaController extends Controller
                         'cantidad' => $detalle->cantidad,
                         'motivo' => $nota->destino,
                         'producto' => $detalle->lote->producto->nombre,
-                        'costo' => $detalle->lote->detalle_compra ? $detalle->lote->detalle_compra->precio : $detalle->lote->detalle_nota->costo_soles,
-                        'precio' => $detalle->lote->detalle_compra ? $detalle->lote->detalle_compra->precio : $detalle->lote->detalle_nota->costo_soles,
+                        'costo' => puedeVerCosto() ? ($detalle->lote->detalle_compra ? $detalle->lote->detalle_compra->precio : $detalle->lote->detalle_nota->costo_soles) : null,
+                        // OJO: 'precio' se rellena con la MISMA expresión del costo
+                        // (parece un copiar-pegar del original). Se protege igual,
+                        // porque si no el costo seguiría saliendo por esta clave.
+                        'precio' => puedeVerCosto() ? ($detalle->lote->detalle_compra ? $detalle->lote->detalle_compra->precio : $detalle->lote->detalle_nota->costo_soles) : null,
                     ]);
                 }
             }

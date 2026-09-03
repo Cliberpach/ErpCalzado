@@ -343,7 +343,7 @@ class ProductoController extends Controller
                     'cantidad' => $detalle->cantidad,
                     'producto_id' => $detalle->lote->producto_id,
                     'producto' => $detalle->lote->producto->nombre,
-                    'costo' => $detalle->lote->detalle_compra ? $detalle->lote->detalle_compra->precio : 0.00,
+                    'costo' => puedeVerCosto() ? ($detalle->lote->detalle_compra ? $detalle->lote->detalle_compra->precio : 0.00) : null,
                     'precio' => $detalle->precio_nuevo,
                     'importe' => number_format($detalle->precio_nuevo * $detalle->cantidad, 2),
                 ]);

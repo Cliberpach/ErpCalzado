@@ -13,10 +13,17 @@ class UtilidadController extends Controller
 {
     public function index()
     {
+        // Esta pantalla no tenía NINGUNA comprobación de acceso. Muestra utilidad
+        // por documento, que se calcula restando el costo al precio de venta.
+        $this->authorize('haveaccess', 'consulta.consulta_utilidad_bruta.index');
+        $this->authorize('haveaccess.estricto', 'almacen.producto.ver_costo');
+
         return view('consultas.caja.utilidad');
     }
 
     public function getTable(Request $request){
+        $this->authorize('haveaccess', 'consulta.consulta_utilidad_bruta.index');
+        $this->authorize('haveaccess.estricto', 'almacen.producto.ver_costo');
         try
         {
             if($request->fecha_desde && $request->fecha_hasta)

@@ -20,13 +20,19 @@ class StockValorizadoController extends Controller
             ->join('marcas','productos.marca_id','=','marcas.id')
             ->join('almacenes','almacenes.id','=','productos.almacen_id')
             ->join('categorias','categorias.id','=','productos.categoria_id')
-            ->select(
-                'categorias.descripcion as categoria',
-                'almacenes.descripcion as almacen',
-                'marcas.marca',
-                'productos.*',
-                DB::raw('(productos.stock * productos.precio_venta_minimo) as stock_valorizado')
-            )
+            ->select(array_merge(
+                [
+                    'categorias.descripcion as categoria',
+                    'almacenes.descripcion as almacen',
+                    'marcas.marca',
+                ],
+                // Sin 'productos.*': el comodín filtraba el costo al JSON aunque
+                // este reporte valorice al precio de venta, no al costo.
+                columnasPublicasProducto(),
+                [
+                    DB::raw('(productos.stock * productos.precio_venta_minimo) as stock_valorizado'),
+                ]
+            ))
             ->orderBy('productos.id','ASC')
             ->where('productos.estado', 'ACTIVO')
         )->toJson();

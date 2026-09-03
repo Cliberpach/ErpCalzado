@@ -5,6 +5,7 @@
         <!-- Slide 1 -->
         <div class="carousel-item active">
             <div class="row justify-content-start">
+                @can('haveaccess.estricto', 'almacen.producto.ver_costo')
                 <div class="col-lg-2 col-md-3 col-sm-4 mb-2">
                     <div class="card slider-card text-white text-center">
                         <div class="card-body">
@@ -13,6 +14,7 @@
                         </div>
                     </div>
                 </div>
+                @endcan
                 <div class="col-lg-2 col-md-3 col-sm-4 mb-2">
                     <div class="card slider-card text-white text-center">
                         <div class="card-body">
@@ -180,6 +182,7 @@
             <div class="carousel-item active">
                 <div class="row justify-content-start">
 
+                    ${(data.utilidad === null || data.utilidad === undefined) ? '' : `
                     <div class="col-lg-2 col-md-3 col-sm-4 mb-2">
                         <div class="card slider-card text-white text-center">
                             <div class="card-body">
@@ -187,7 +190,7 @@
                                 <h4>${formatoMoneda(data.utilidad)}</h4>
                             </div>
                         </div>
-                    </div>
+                    </div>`}
 
                     <div class="col-lg-2 col-md-3 col-sm-4 mb-2">
                         <div class="card slider-card text-white text-center">

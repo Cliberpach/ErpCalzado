@@ -45,7 +45,7 @@ class ClienteController extends Controller
                     'talla' => $detalle->nombre_talla,
                     'color' => $detalle->nombre_color,
                     'producto' => $detalle->nombre_producto,
-                    'costo' => $detalle->producto->precio_compra?$detalle->producto->precio_compra:0.0,
+                    'costo' => puedeVerCosto() ? ($detalle->producto->precio_compra?$detalle->producto->precio_compra:0.0) : null,
                     'precio' => $detalle->precio_unitario_nuevo,
                     'importe' => number_format($detalle->importe_nuevo, 2)
                 ]);

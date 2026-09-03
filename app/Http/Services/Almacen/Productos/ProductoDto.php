@@ -6,9 +6,14 @@ use Illuminate\Support\Collection;
 
 class ProductoDto
 {
-    public function dtoStore(array $data): array
+    /**
+     * @param bool $esCreacion true sólo desde ProductoService::store().
+     *        El valor por defecto (false = edición) es el comportamiento seguro:
+     *        ante la duda, el costo existente no se toca.
+     */
+    public function dtoStore(array $data, bool $esCreacion = false): array
     {
-        return [
+        $dto = [
 
             'nombre' => mb_strtoupper(
                 trim($data['nombre']),
@@ -31,7 +36,7 @@ class ProductoDto
 
             'precio_venta_4' => $data['precio4'],
 
-            'costo' => $data['costo'] ?? 0,
+
 
             'descripcion' => $data['descripcion'] ?? null,
 
@@ -44,6 +49,37 @@ class ProductoDto
             'is_outlet' => $data['is_outlet'] ?? 0,
 
         ];
+
+        /**
+         * COSTO — se resuelve aparte, nunca con "?? 0".
+         *
+         * A los usuarios sin el permiso 'almacen.producto.ver_costo' no se les
+         * renderiza el campo, así que la clave NO llega en el POST. Antes esto
+         * lo ponía a 0 y destruía el dato al guardar cualquier otro cambio.
+         *
+         * Reglas:
+         *   - update() sin permiso: se omite la clave, Producto::update() no toca
+         *     la columna y el costo conserva su valor.
+         *   - store() sin permiso: se escribe 1 explícitamente (requisito del
+         *     cliente), no el DEFAULT 0.00 de la columna.
+         *
+         * Se exige además el permiso: aunque alguien inyecte 'costo' en el POST,
+         * sin permiso no se escribe.
+         */
+        $costoRecibido = array_key_exists('costo', $data) && $data['costo'] !== null && $data['costo'] !== '';
+
+        if ($costoRecibido && puedeVerCosto()) {
+            // Con permiso y con dato: se escribe lo que envió el formulario.
+            $dto['costo'] = $data['costo'];
+        } elseif ($esCreacion && !puedeVerCosto()) {
+            // ALTA sin permiso: el cliente pidió que quede en 1, no en el
+            // DEFAULT 0.00 de la columna. Se escribe explícitamente.
+            $dto['costo'] = 1;
+        }
+        // EDICIÓN sin permiso: la clave se omite a propósito y Producto::update()
+        // no toca la columna, así que el costo conserva su valor.
+
+        return $dto;
     }
 
     public function dtoProductFeatures(array $features, int $id): array

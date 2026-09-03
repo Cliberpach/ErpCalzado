@@ -45,7 +45,7 @@ class ProveedorController extends Controller
                     'producto' => $detalle->producto_nombre,
                     'color' => $detalle->color_nombre,
                     'talla' => $detalle->talla_nombre,
-                    'costo' => $detalle->producto->precio_compra?$detalle->producto->precio_compra:0.0,
+                    'costo' => puedeVerCosto() ? ($detalle->producto->precio_compra?$detalle->producto->precio_compra:0.0) : null,
                     'precio' => $detalle->precio_mas_igv_soles,
                     'importe' => number_format($detalle->cantidad * $detalle->precio_mas_igv_soles , 2)
                 ]);

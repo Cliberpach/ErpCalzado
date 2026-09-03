@@ -135,6 +135,7 @@
                     </div>
                 </div>
 
+                @can('haveaccess.estricto', 'almacen.producto.ver_costo')
                 <div class="col-lg-6 col-12">
                     <label style="font-weight:bold;" class="required">COSTO</label>
                     <input value="{{ $producto->costo }}"
@@ -143,6 +144,7 @@
                         value="{{ old('costo') }}" />
                     <span style="font-weight: bold;color:red;" class="precio3_error msgErrorProducto"></span>
                 </div>
+                @endcan
 
                 <div class="col-lg-6 col-12 mb-3">
                     <div class="form-check">

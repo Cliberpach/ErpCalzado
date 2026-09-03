@@ -31,7 +31,7 @@ class ProductoService
     {
         $data   =   $this->s_validation->validationStore($data);
 
-        $dto    =   $this->s_dto->dtoStore($data);
+        $dto    =   $this->s_dto->dtoStore($data, true);
         $instance   =   $this->s_repository->store($dto);
 
         $dto_features   =   $this->s_dto->dtoProductFeatures($data['features'], $instance->id);
