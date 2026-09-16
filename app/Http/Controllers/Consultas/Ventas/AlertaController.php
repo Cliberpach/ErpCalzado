@@ -1153,6 +1153,10 @@ class AlertaController extends Controller
 
     public function sunat_guias($id)
     {
+        // Emisión externa irreversible ante SUNAT: exige permiso explícito.
+        // Gate normal: un rol con full-access = 'SI' lo hereda, que es lo deseado.
+        $this->authorize('haveaccess', 'ventas.guia.enviar_sunat');
+
         $guia = Guia::findOrFail($id);
         if ($guia->sunat != '1') {
             //ARREGLO GUIA
@@ -1421,6 +1425,10 @@ class AlertaController extends Controller
 
     public function sunat_retenciones($id)
     {
+        // Fuera del try a propósito: dentro, el catch convertiría la AuthorizationException
+        // en un mensaje de error y devolvería 200 en lugar de 403.
+        $this->authorize('haveaccess', 'ventas.retencion.enviar_sunat');
+
         try {
             $documento = Retencion::findOrFail($id);
 

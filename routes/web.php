@@ -425,11 +425,15 @@ Route::group(
 
             Route::get('guias', 'Consultas\Ventas\AlertaController@guias')->name('consultas.ventas.alerta.guias');
             Route::get('getTableguias', 'Consultas\Ventas\AlertaController@getTableGuias')->name('consultas.ventas.alerta.getTableGuias');
-            Route::get('sunat_guias/{id}', 'Consultas\Ventas\AlertaController@sunat_guias')->name('consultas.ventas.alerta.sunat_guias');
+            // POST, no GET: emite una guía de remisión real ante SUNAT. Con GET bastaba
+            // teclear la URL (o volver atrás en el historial) para disparar la emisión,
+            // y además no había verificación CSRF. Requiere 'ventas.guia.enviar_sunat'.
+            Route::post('sunat_guias/{id}', 'Consultas\Ventas\AlertaController@sunat_guias')->name('consultas.ventas.alerta.sunat_guias');
 
             Route::get('retenciones', 'Consultas\Ventas\AlertaController@retenciones')->name('consultas.ventas.alerta.retenciones');
             Route::get('getTableretenciones', 'Consultas\Ventas\AlertaController@getTableRetenciones')->name('consultas.ventas.alerta.getTableRetenciones');
-            Route::get('sunat_retenciones/{id}', 'Consultas\Ventas\AlertaController@sunat_retenciones')->name('consultas.ventas.alerta.sunat_retenciones');
+            // POST por el mismo motivo que sunat_guias. Requiere 'ventas.retencion.enviar_sunat'.
+            Route::post('sunat_retenciones/{id}', 'Consultas\Ventas\AlertaController@sunat_retenciones')->name('consultas.ventas.alerta.sunat_retenciones');
         });
 
         // Consultas - Compras - Ordenes

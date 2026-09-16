@@ -157,7 +157,9 @@ function loadTable()
 
                     if(data.code_regularize != '1033' && data.code != '0')
                     {
+                        @can('haveaccess', 'ventas.retencion.enviar_sunat')
                         cadena = cadena + "<button type='button' class='btn btn-sm btn-success m-1' onclick='enviarSunat(" +data.id+ ")'  title='Enviar Sunat'><i class='fa fa-send'></i> Sunat</button>";
+                        @endcan
                     }
 
                     return cadena;
@@ -187,6 +189,26 @@ $(".dataTables-retenciones").on('click','.btn-pdf',function(){
     window.open(url, "Comprobante SISCOM", "width=900, height=600")
 });
 
+/**
+ * Envía por POST con el token CSRF, usando un formulario efímero.
+ * Sustituye a window.location.href: la ruta dejó de ser GET porque emitía a SUNAT,
+ * y una URL GET queda en el historial, en los marcadores y en los logs, reejecutable.
+ */
+function enviarPorPost(url) {
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+
+    var token = document.createElement('input');
+    token.type  = 'hidden';
+    token.name  = '_token';
+    token.value = '{{ csrf_token() }}';
+    form.appendChild(token);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
 function enviarSunat(id , sunat) {
     const swalWithBootstrapButtons = Swal.mixin({
         customClass: {
@@ -211,7 +233,8 @@ function enviarSunat(id , sunat) {
             var url = '{{ route("consultas.ventas.alerta.sunat_retenciones", ":id")}}';
             url = url.replace(':id',id);
 
-            window.location.href = url
+            // Formulario efímero: la ruta es POST y exige token CSRF. Ver enviarPorPost().
+            enviarPorPost(url);
 
             Swal.fire({
                 title: '¡Cargando!',
