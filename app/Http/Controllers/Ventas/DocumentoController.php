@@ -1508,7 +1508,7 @@ array:27 [
         return $fecha;
     }
 
-    public function voucher($id, $size)
+    public function voucher($id, $size, $nombre = null)
     {
         try {
 

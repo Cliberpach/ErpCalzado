@@ -215,7 +215,7 @@ $(document).ready(function() {
                                             </button>
                                             <ul class='dropdown-menu'>
                                                 <li>
-                                                    <a class='dropdown-item' onclick='detalle(${data.id})' title='PDF'>
+                                                    <a class='dropdown-item' onclick='detalle(${data.id}, "${data.nombre_pdf || ""}")' title='PDF'>
                                                         <b><i class='fa fa-eye'></i> PDF </b>
                                                     </a>
                                                 </li>
@@ -307,9 +307,9 @@ function eliminarGuia(id) {
 }
 
 
-function detalle(id) {
+function detalle(id, nombre) {
     var url = '{{ route("ventas.guiasremision.show", ":id")}}';
-    url = url.replace(':id',id);
+    url = urlPdfConNombre(url.replace(':id',id), nombre);
 
     window.open(url, "Comprobante SISCOM", "width=900, height=600")
 }

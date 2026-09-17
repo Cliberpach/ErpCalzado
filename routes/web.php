@@ -321,7 +321,7 @@ Route::group(
             Route::post('store', 'Ventas\Electronico\NotaController@store')->name('ventas.notas.store');
             Route::get('getNotes/{id}', 'Ventas\Electronico\NotaController@getNotes')->name('ventas.getNotes');
             Route::get('getDetalles/{id}', 'Ventas\Electronico\NotaController@getDetalles')->name('ventas.getDetalles');
-            Route::get('show/{id}', 'Ventas\Electronico\NotaController@show')->name('ventas.notas.show');
+            Route::get('show/{id}/{nombre?}', 'Ventas\Electronico\NotaController@show')->name('ventas.notas.show')->where('nombre', '[A-Za-z0-9._-]+')->middleware('pdf.nombre');
             Route::get('show_dev/{id}', 'Ventas\Electronico\NotaController@show_dev')->name('ventas.notas_dev.show');
             Route::get('sunat/{id}/{type_response?}', 'Ventas\Electronico\NotaController@sunat')->name('ventas.notas.sunat');
         });
@@ -642,7 +642,7 @@ require __DIR__ . '/seguridad/web.php';
 require __DIR__ . '/pedidos/web.php';
 require __DIR__ . '/utils/web.php';
 
-Route::get('ventas/documentos/comprobante/{id}/{size}', 'Ventas\DocumentoController@voucher')->name('ventas.documento.comprobante');
+Route::get('ventas/documentos/comprobante/{id}/{size}/{nombre?}', 'Ventas\DocumentoController@voucher')->name('ventas.documento.comprobante')->where('nombre', '[A-Za-z0-9._-]+')->middleware('pdf.nombre');
 Route::get('ventas/documentos/xml/{id}', 'Ventas\DocumentoController@xml')->name('ventas.documento.xml');
 Route::get('/buscar', 'BuscarController@index');
 Route::post('/getDocument', 'BuscarController@getDocumento')->name('buscar.getDocument');
@@ -677,7 +677,7 @@ Route::get('/get-stocklogico/{almacen_id}/{producto_id}/{color_id}/{talla_id}', 
 Route::group(['prefix' => 'consultas'], function () {
     Route::get('/comprobante', [QuerySaleController::class, 'index'])->name('consultarComprobante');
     Route::post('/comprobante/buscar', [QuerySaleController::class, 'consultarComprobante'])->name('consultarComprobante.buscar');
-    Route::get('/comprobante/pdf', [QuerySaleController::class, 'pdf'])->name('consultarComprobante.pdf');
+    Route::get('/comprobante/pdf/{nombre?}', [QuerySaleController::class, 'pdf'])->name('consultarComprobante.pdf')->where('nombre', '[A-Za-z0-9._-]+')->middleware('pdf.nombre');
     Route::get('/comprobante/xml', [QuerySaleController::class, 'xml'])->name('consultarComprobante.xml');
     Route::get('/comprobante/cdr', [QuerySaleController::class, 'cdr'])->name('consultarComprobante.cdr');
 });

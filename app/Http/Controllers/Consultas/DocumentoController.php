@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Consultas;
 
 use App\Almacenes\Talla;
+use App\Classes\NombreArchivoPdf;
 use App\Almacenes\LoteProducto;
 use App\Almacenes\Producto;
 use App\Exports\DocumentosExport;
@@ -74,6 +75,7 @@ class DocumentoController extends Controller
                 foreach($consulta as $doc){
                     $coleccion->push([
                         'id' => $doc->id,
+                        'nombre_pdf' => NombreArchivoPdf::documentoVenta($doc),
                         'tipo_doc' => $doc->descripcionTipo(),
                         'numero' => $doc->serie . '-' . $doc->correlativo,
                         'total' => $doc->total_pagar,
@@ -111,6 +113,7 @@ class DocumentoController extends Controller
                 foreach($consulta as $doc){
                     $coleccion->push([
                         'id' => $doc->id,
+                        'nombre_pdf' => NombreArchivoPdf::documentoVenta($doc),
                         'tipo_doc' => $doc->descripcionTipo(),
                         'numero' => $doc->serie . '-' . $doc->correlativo,
                         'total' => $doc->total_pagar,
@@ -134,6 +137,7 @@ class DocumentoController extends Controller
                 foreach($notas_electronicas as $nota){
                     $coleccion->push([
                         'id' => $nota->id,
+                        'nombre_pdf' => NombreArchivoPdf::notaElectronica($nota),
                         'tipo_doc' => 'NOTA DE CRÉDITO',
                         'numero' => $nota->serie . '-' . $nota->correlativo,
                         'total' => $nota->mtoImpVenta,
@@ -172,6 +176,7 @@ class DocumentoController extends Controller
                 foreach($ventas as $doc){
                     $coleccion->push([
                         'id' => $doc->id,
+                        'nombre_pdf' => NombreArchivoPdf::documentoVenta($doc),
                         'tipo_doc' => $doc->descripcionTipo(),
                         'numero' => $doc->serie . '-' . $doc->correlativo,
                         'total' => $doc->total_pagar,
@@ -203,6 +208,7 @@ class DocumentoController extends Controller
                 foreach($consulta as $doc){
                     $coleccion->push([
                         'id' => $doc->id,
+                        'nombre_pdf' => NombreArchivoPdf::notaElectronica($doc),
                         'tipo_doc' => 'NOTA DE CRÉDITO',
                         'numero' => $doc->serie . '-' . $doc->correlativo,
                         'total' => $doc->mtoImpVenta,
@@ -234,6 +240,7 @@ class DocumentoController extends Controller
                 foreach($consulta as $doc){
                     $coleccion->push([
                         'id' => $doc->id,
+                        'nombre_pdf' => NombreArchivoPdf::guia($doc),
                         'tipo_doc' => 'GUÍA DE REMISIÓN',
                         'numero' => $doc->serie . '-' . $doc->correlativo,
                         'total' => '-',

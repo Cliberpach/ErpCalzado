@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Ventas\Electronico;
 
 use App\Almacenes\Almacen;
+use App\Classes\NombreArchivoPdf;
 use App\Almacenes\Color;
 use App\Almacenes\Kardex;
 use App\Almacenes\Producto;
@@ -90,6 +91,7 @@ class NotaController extends Controller
 
             $coleccion->push([
                 'id'                => $nota->id,
+                'nombre_pdf'        => NombreArchivoPdf::notaElectronica($nota),
                 'tipo_venta_id'     => $nota->documento->tipo_venta_id,
                 'documento_afectado'=> $nota->numDocfectado,
                 'fecha_emision'     =>  $nota->fechaEmision,
@@ -1014,7 +1016,7 @@ class NotaController extends Controller
         return $arrayProductos;
     }
 
-    public function show($id)
+    public function show($id, $nombre = null)
     {
         $nota       = Nota::with(['documento'])->findOrFail($id);
         $empresa    = Empresa::first();
@@ -1027,16 +1029,19 @@ class NotaController extends Controller
         $legends = json_encode($legends,true);
         $legends = json_decode($legends,true);
 
+        $nombre = NombreArchivoPdf::notaElectronica($nota);
+
         $pdf = PDF::loadview('ventas.notas.impresion.comprobante_normal_nuevo',[
-            'nota'      =>  $nota,
-            'detalles'  =>  $detalles,
-            'moneda'    =>  $nota->tipoMoneda,
-            'empresa'   =>  $empresa,
-            "legends"   =>  $legends,
+            'nota'              =>  $nota,
+            'detalles'          =>  $detalles,
+            'moneda'            =>  $nota->tipoMoneda,
+            'empresa'           =>  $empresa,
+            "legends"           =>  $legends,
+            'tituloDocumento'   =>  $nombre,
             ])->setPaper('a4')->setWarnings(false);
 
         //$pdf->save(storage_path().'/app/public/comprobantessiscom/notas/'.$name);
-        return $pdf->stream($nota->serie.'-'.$nota->correlativo);
+        return $pdf->stream($nombre.'.pdf');
     }
 
     public function show_dev($id)

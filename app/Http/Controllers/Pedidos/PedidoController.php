@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Pedidos;
 
 use App\Almacenes\Almacen;
+use App\Classes\NombreArchivoPdf;
 use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\Request;
@@ -62,9 +63,13 @@ class PedidoController extends Controller
 
         $pedidos    =   Pedido::select(
             'pedidos.*',
+            // El DNI/RUC viene en el mismo SELECT para poder nombrar el PDF
+            // sin una consulta por fila.
+            'clientes.documento as cliente_documento',
             DB::raw('CONCAT(pedidos.documento_venta_facturacion_serie, "-", pedidos.documento_venta_facturacion_correlativo) as documento_venta'),
             DB::raw('if(pedidos.cotizacion_id is null,"-",concat("CO-",pedidos.cotizacion_id)) as cotizacion_nro')
         )
+            ->leftJoin('clientes', 'clientes.id', '=', 'pedidos.cliente_id')
             ->where('pedidos.estado', '!=', 'ANULADO');
 
         if ($fecha_inicio) {
@@ -100,6 +105,11 @@ class PedidoController extends Controller
         }
 
         $dataTable  =   DataTables::of($pedidos)
+            // addColumn sólo corre sobre las filas de la página, no sobre todo
+            // el resultado: el listado pagina en servidor.
+            ->addColumn('nombre_pdf', function ($pedido) {
+                return NombreArchivoPdf::pedido($pedido, $pedido->cliente_documento);
+            })
             ->filterColumn('cliente_nombre', function ($query, $keyword) {
                 $query->whereRaw('LOWER(pedidos.cliente_nombre) like ?', ["%" . strtolower($keyword) . "%"]);
             })
@@ -622,7 +632,7 @@ array:11 [
         }
     }
 
-    public function report($id)
+    public function report($id, $nombre = null)
     {
         $pedido             = Pedido::findOrFail($id);
         $tallas             = Talla::all();
@@ -633,14 +643,21 @@ array:11 [
         $vendedor_nombre    = $pedido->user_nombre;
 
 
+        // El pedido no guarda el DNI/RUC: se toma del cliente relacionado.
+        $nombre = NombreArchivoPdf::pedido(
+            $pedido,
+            $pedido->cliente ? $pedido->cliente->documento : null
+        );
+
         $pdf = PDF::loadview('pedidos.pedido.reportes.detalle', [
             'pedido'            => $pedido,
             'detalles'          => $detalles,
             'empresa'           => $empresa,
             'tallas'            => $tallas,
-            'vendedor_nombre'   => $vendedor_nombre
+            'vendedor_nombre'   => $vendedor_nombre,
+            'tituloDocumento'   => $nombre
         ])->setPaper('a4')->setWarnings(false);
-        return $pdf->stream('CO-' . $pedido->pedido_nro . '.pdf');
+        return $pdf->stream($nombre . '.pdf');
     }
 
     public function atender(Request $request)

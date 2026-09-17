@@ -3,6 +3,7 @@
 namespace App\Http\Services\Ventas\Ventas;
 
 use App\Almacenes\Almacen;
+use App\Classes\NombreArchivoPdf;
 use App\Http\Controllers\UtilidadesController;
 use App\Http\Services\Almacen\ProductoColorTalla\ProductoColorTallaService;
 use App\Http\Services\Almacen\Productos\ProductoService;
@@ -383,6 +384,9 @@ class VentaService
         $sede               =   Sede::find($documento->sede_id);
         $despacho           =   EnvioVenta::where('documento_id', $id)->first();
 
+        // Mismo nombre para A4 y 80 mm: el tamaño sólo cambia el papel.
+        $nombre =   NombreArchivoPdf::documentoVenta($documento);
+
         $pdf    =   Pdf::loadview('ventas.documentos.impresion.comprobante_ticket', [
             'documento'         =>  $documento,
             'detalles'          =>  $detalles,
@@ -391,7 +395,8 @@ class VentaService
             'sede'              =>  $sede,
             'despacho'          =>  $despacho,
             'cuenta'            =>  $cuenta,
-            'detalle_pago'      =>  $detalle_pago
+            'detalle_pago'      =>  $detalle_pago,
+            'tituloDocumento'   =>  $nombre
         ])->setPaper([0, 0, 226.772, 651.95]);
 
         if ($size == 80) {
@@ -401,7 +406,7 @@ class VentaService
             $pdf    =   $pdf->setPaper('a4')->setWarnings(false);
         }
 
-        return ['pdf' => $pdf, 'nombre' => $documento->serie . '-' . $documento->correlativo . '.pdf'];
+        return ['pdf' => $pdf, 'nombre' => $nombre . '.pdf'];
     }
 
     public function qr_code(int $id): array

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Pos\CajaController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('cajas')->middleware('auth')->group(function () {
@@ -27,7 +28,8 @@ Route::prefix('cajas')->middleware('auth')->group(function () {
         Route::get('estadoCaja', 'Pos\CajaController@estadoCaja')->name('Caja.estado');
         Route::get('cajaDatosCierre', 'Pos\CajaController@cajaDatosCierre')->name('Caja.datos.cierre');
         Route::get('verificarEstadoUser', 'Pos\CajaController@verificarEstadoUser')->name('Caja.movimiento.verificarestado');
-        Route::get('repoteMovimiento/{id}', 'Pos\CajaController@reporteMovimiento')->name('Caja.reporte.movimiento');
+        Route::get('repoteMovimiento/{id}/{nombre?}', 'Pos\CajaController@reporteMovimiento')->name('Caja.reporte.movimiento')->where('nombre', '[A-Za-z0-9._-]+')->middleware('pdf.nombre');
+        Route::get('reporteProductos/{id}/{nombre?}', [CajaController::class, 'reporteProductos'])->name('Caja.reporte.productos')->where('nombre', '[A-Za-z0-9._-]+')->middleware('pdf.nombre');
         Route::get('caja/verificar-ventas/{movimiento_id}', 'Pos\CajaController@verificarVentasNoPagadas')->name('caja.movimiento.verificarVentasNoPagadas');
         Route::get('estadoCajas', 'Pos\CajaController@estadoCajas')->name('Caja.estadoCajas');
     });

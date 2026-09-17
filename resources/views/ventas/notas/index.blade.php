@@ -324,13 +324,18 @@
                         }
 
                         url_detalle = url_detalle.replace(':id', data.id);
+                        // El nombre sólo aplica a la nota electrónica; la nota de
+                        // devolución (tipo 129) conserva su URL de siempre.
+                        if (data.tipo_venta_id != 129) {
+                            url_detalle = urlPdfConNombre(url_detalle, data.nombre_pdf);
+                        }
 
                         let cadena = "<div class='btn-group' style='text-transform:capitalize;'><button data-toggle='dropdown' class='btn btn-primary btn-sm  dropdown-toggle'><i class='fa fa-bars'></i></button><ul class='dropdown-menu'>" ;
 
                         if(data.tipo_venta_id != 129)
                         {
                             cadena = cadena +
-                            "<li><a class='dropdown-item' target='_blank' onclick='detalle(" +data.id+ ")' title='Detalle'><b><i class='fa fa-eye'></i> Detalle</a></b></li>";
+                            "<li><a class='dropdown-item' target='_blank' onclick='detalle(" +data.id+ ",\""+(data.nombre_pdf||"")+"\")' title='Detalle'><b><i class='fa fa-eye'></i> Detalle</a></b></li>";
                         }
                         else
                         {
@@ -376,10 +381,10 @@
     })
 
 
-    function detalle(id) {
+    function detalle(id, nombre) {
 
         var url = '{{ route("ventas.notas.show", ":id")}}';
-        url = url.replace(':id',id);
+        url = urlPdfConNombre(url.replace(':id',id), nombre);
         window.open(url, "Comprobante SISCOM", "width=900, height=600")
     }
 

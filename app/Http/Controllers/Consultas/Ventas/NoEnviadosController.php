@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Consultas\Ventas;
 use Illuminate\Support\Facades\Cache;
 
+use App\Classes\NombreArchivoPdf;
 use App\Classes\StockMov;
 use App\Almacenes\Kardex;
 use App\Almacenes\LoteProducto;
@@ -71,6 +72,7 @@ class NoEnviadosController extends Controller
 
             $coleccion->push([
                 'id' => $documento->id,
+                'nombre_pdf' => NombreArchivoPdf::documentoVenta($documento),
                 'tipo_venta' => $documento->nombreTipo(),
                 'tipo_venta_id' => $documento->tipo_venta,
                 'tipo_pago' => $documento->tipo_pago,

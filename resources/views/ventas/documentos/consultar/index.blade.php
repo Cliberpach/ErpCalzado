@@ -782,8 +782,11 @@
         const fecha_emision =
             `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
         const totalPagar = parseFloat(documento.total_pagar).toFixed(2);
-        const urlPdf =
-            `{{ route('consultarComprobante.pdf') }}?tipo_doc=${documento.tipo_venta_codigo}&fecha_emision=${fecha_emision}&serie=${documento.serie}&correlativo=${documento.correlativo}&doc_cliente=${documento.cliente_numero_documento}&monto_total=${totalPagar}`;
+        // El nombre viene del servidor en documento.nombre_pdf; aquí sólo se
+        // pega como último tramo de la ruta, antes del query string.
+        const urlPdf = urlPdfConNombre(
+            `{{ route('consultarComprobante.pdf') }}?tipo_doc=${documento.tipo_venta_codigo}&fecha_emision=${fecha_emision}&serie=${documento.serie}&correlativo=${documento.correlativo}&doc_cliente=${documento.cliente_numero_documento}&monto_total=${totalPagar}`,
+            documento.nombre_pdf);
 
         const urlXml =
             `{{ route('consultarComprobante.xml') }}?tipo_doc=${documento.tipo_venta_codigo}&fecha_emision=${fecha_emision}&serie=${documento.serie}&correlativo=${documento.correlativo}&doc_cliente=${documento.cliente_numero_documento}&monto_total=${totalPagar}`;

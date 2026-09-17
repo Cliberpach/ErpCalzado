@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>@if(isset($nota_venta)) NOTA DE DEVOLUCIÓN @else NOTA DE CRÉDITO @endif</title>
+        <title>@if(isset($tituloDocumento)){{ $tituloDocumento }}@elseif(isset($nota_venta)) NOTA DE DEVOLUCIÓN @else NOTA DE CRÉDITO @endif</title>
         <link rel="icon" href="{{ base_path() . '/img/siscom.ico' }}" />
         <style>
             body {

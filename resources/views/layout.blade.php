@@ -654,6 +654,23 @@
     <!-- Propio scripts -->
     <script src="/Inspinia/js/scripts.js"></script>
 
+    <script>
+        // Añade el nombre del archivo como último tramo de la URL de un PDF.
+        // El visor de Adobe Acrobat ignora el Content-Disposition y toma el
+        // nombre de la URL; así coinciden los dos. El nombre lo arma el
+        // servidor con NombreArchivoPdf y viaja en la fila del listado: aquí
+        // sólo se concatena. Sin nombre devuelve la URL tal cual, nunca una
+        // URL rota.
+        window.urlPdfConNombre = function (url, nombre) {
+            if (!nombre) return url;
+            var limpio = String(nombre).replace(/[^A-Za-z0-9._-]/g, '');
+            if (!limpio) return url;
+            var partes = String(url).split('?');
+            partes[0] = partes[0].replace(/\/+$/, '') + '/' + limpio + '.pdf';
+            return partes.join('?');
+        };
+    </script>
+
     <!-- SweetAlert -->
     <script src="/SweetAlert/sweetalert2@10.js"></script>
 

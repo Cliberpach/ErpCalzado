@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Reportes\Pos;
 
 use App\Exports\Reportes\Pos\CajaExport;
 use App\Http\Controllers\Controller;
+use App\Http\Services\Caja\CajaMovimiento\CajaMovimientoManager;
+use App\Http\Services\Caja\CajaMovimiento\CajaMovimientoService;
+use App\Mantenimiento\Empresa\Empresa;
 use App\Pos\Caja;
 use App\Pos\MovimientoCaja;
 use Illuminate\Http\Request;
@@ -20,6 +23,19 @@ class CajaController extends Controller
 
     public function getTable(Request $request)
     {
+        // El RUC se lee una vez; addColumn sólo corre sobre las filas de la
+        // página, así que nombrar los PDF no añade consultas por fila.
+        $ruc      = optional(Empresa::first())->ruc;
+        $s_caja   = new CajaMovimientoManager();
+        $nombrePdf = function ($fila) use ($ruc, $s_caja) {
+            return $s_caja->formatoNombreArchivo(
+                $ruc,
+                CajaMovimientoService::REPORTE_DINERO,
+                (int) $fila->id,
+                $fila->fecha_apertura
+            );
+        };
+
         $caja = $request->caja_id;
         $fecha_ini = $request->fecha_ini;
         $fecha_fin = $request->fecha_fin;
@@ -43,7 +59,7 @@ class CajaController extends Controller
                 ->where('movimiento_caja.estado_movimiento','CIERRE')
                 ->where('movimiento_caja.caja_id',$caja)
                 ->whereBetween('movimiento_caja.fecha',[$fecha_ini,$fecha_fin])
-            )->toJson();
+            )->addColumn('nombre_pdf', $nombrePdf)->toJson();
         }
         else if($caja != '' && $fecha_ini == '' && $fecha_fin == '')
         {
@@ -63,7 +79,7 @@ class CajaController extends Controller
                 )
                 ->where('movimiento_caja.estado_movimiento','CIERRE')
                 ->where('movimiento_caja.caja_id',$caja)
-            )->toJson();
+            )->addColumn('nombre_pdf', $nombrePdf)->toJson();
         }
         else if($caja == '' && $fecha_ini != '' && $fecha_fin != '')
         {
@@ -83,7 +99,7 @@ class CajaController extends Controller
                 )
                 ->where('movimiento_caja.estado_movimiento','CIERRE')
                 ->whereBetween('movimiento_caja.fecha',[$fecha_ini,$fecha_fin])
-            )->toJson();
+            )->addColumn('nombre_pdf', $nombrePdf)->toJson();
         }
         else{
             return datatables()->query(
@@ -101,7 +117,7 @@ class CajaController extends Controller
                     'movimiento_caja.monto_final as saldo'
                 )
                 ->where('movimiento_caja.estado_movimiento','CIERRE')
-            )->toJson();
+            )->addColumn('nombre_pdf', $nombrePdf)->toJson();
         }
 
         //nuevo atributo de tipo date llamado fecha en movimiento_caja

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Ventas;
 
 use App\Almacenes\Almacen;
+use App\Classes\NombreArchivoPdf;
 use App\Almacenes\Conductor;
 use Illuminate\Support\Facades\Storage;
 
@@ -263,7 +264,10 @@ class GuiaController extends Controller
                         'gr.ruta_xml',
                         'gr.ruta_cdr',
                         'gr.cdr_response_code',
-                        'gr.ticket'
+                        'gr.ticket',
+                        'gr.serie',
+                        'gr.correlativo',
+                        'gr.documento_cliente'
                     )
                     ->get();
 
@@ -274,7 +278,11 @@ class GuiaController extends Controller
         //$guias->where('cd.sede_usa_guia', Auth::user()->sede_id);
         
               
-        return DataTables::of($guias)->toJson();
+        return DataTables::of($guias)
+            ->addColumn('nombre_pdf', function ($guia) {
+                return NombreArchivoPdf::guia($guia);
+            })
+            ->toJson();
     }
 
     public static function comprobanteActivo($sede_id,$tipo_comprobante){
@@ -998,10 +1006,10 @@ array:14 [
         return $cadena;
     }
 
-    public function show($id)
-    {   
+    public function show($id, $nombre = null)
+    {
         try {
-        
+
             $guia           =   Guia::with(['documento','detalles'])->findOrFail($id);
 
             $destinatario   =   null;
@@ -1033,18 +1041,21 @@ array:14 [
             $sede       =   Sede::find($guia->sede_usa_guia);
 
 
+            $nombre =   NombreArchivoPdf::guia($guia);
+
             $pdf    =   PDF::loadview('ventas.guias.reportes.guia', [
-                            'guia'          => $guia,
-                            'empresa'       => $empresa,
-                            'sede'          => $sede,
-                            'conductor'     => $conductor,
-                            'vehiculo'      => $vehiculo,
-                            'destinatario'  => $destinatario,
-                            'partida'       => $partida
+                            'guia'            => $guia,
+                            'empresa'         => $empresa,
+                            'sede'            => $sede,
+                            'conductor'       => $conductor,
+                            'vehiculo'        => $vehiculo,
+                            'destinatario'    => $destinatario,
+                            'partida'         => $partida,
+                            'tituloDocumento' => $nombre
                         ])->setPaper('a4')->setWarnings(false);
 
 
-            return $pdf->stream($guia->serie . '-' . $guia->correlativo . '.pdf');    
+            return $pdf->stream($nombre . '.pdf');
            
         } catch (\Throwable $th) {
             dd($th);

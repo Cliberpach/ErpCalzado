@@ -63,6 +63,7 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        'pdf.nombre' => \App\Http\Middleware\NombreArchivoPdfEnUrl::class,
         'recibos_caja.create' => \App\Http\Middleware\ReciboCajaCreateMiddleware::class,
         'reservas-web.token' => \App\Http\Middleware\VerifyReservasWebToken::class,
 

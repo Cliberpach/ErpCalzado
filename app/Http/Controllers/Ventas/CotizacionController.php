@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Ventas;
 
 use App\Almacenes\Almacen;
+use App\Classes\NombreArchivoPdf;
 use App\Almacenes\Categoria;
 use App\Almacenes\Kardex;
 use App\Almacenes\LoteProducto;
@@ -345,7 +346,7 @@ array:11 [
         return redirect()->route('ventas.cotizacion.show', $cotizacion->id)->with('enviar', 'success');
     }
 
-    public function report($id)
+    public function report($id, $nombre = null)
     {
         $cotizacion         = Cotizacion::findOrFail($id);
         $sede               = Sede::find($cotizacion->sede_id);
@@ -367,6 +368,12 @@ array:11 [
         $vendedor_nombre =  $nombre_completo;
 
 
+        // La cotización no guarda el DNI/RUC: se toma del cliente relacionado.
+        $nombre = NombreArchivoPdf::cotizacion(
+            $cotizacion,
+            $cotizacion->cliente ? $cotizacion->cliente->documento : null
+        );
+
         $pdf = PDF::loadview('ventas.cotizaciones.reportes.detalle_nuevo', [
             'cotizacion'        => $cotizacion,
             'nombre_completo'   => $nombre_completo,
@@ -375,9 +382,10 @@ array:11 [
             'tallas'            => $tallas,
             'vendedor_nombre'   => $vendedor_nombre,
             'mostrar_cuentas'   => $mostrar_cuentas,
-            'sede'              => $sede
+            'sede'              => $sede,
+            'tituloDocumento'   => $nombre
         ])->setPaper('a4')->setWarnings(false);
-        return $pdf->stream('CO-' . $cotizacion->id . '.pdf');
+        return $pdf->stream($nombre . '.pdf');
     }
 
     public function formatearArrayDetalle($detalles)

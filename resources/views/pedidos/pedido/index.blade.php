@@ -343,7 +343,7 @@
                         className: "text-center",
                         render: function(data, type, row) {
                             let url_reporte = '{{ route('pedidos.pedido.reporte', ':id') }}';
-                            url_reporte = url_reporte.replace(':id', row.id);
+                            url_reporte = urlPdfConNombre(url_reporte.replace(':id', row.id), row.nombre_pdf);
 
                             let url_facturar_create =
                             '{{ route('pedidos.pedido.facturar-create', ':id') }}';
@@ -488,8 +488,9 @@
 
         }
 
-        function reportePedido(pedido_id) {
-            window.location = `{{ route('pedidos.pedido.reporte', ['id' => ':id']) }}`.replace(':id', pedido_id);
+        function reportePedido(pedido_id, nombre) {
+            window.location = urlPdfConNombre(
+                `{{ route('pedidos.pedido.reporte', ['id' => ':id']) }}`.replace(':id', pedido_id), nombre);
         }
 
         function atenderPedido(pedido_id) {

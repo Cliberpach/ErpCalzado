@@ -52,7 +52,7 @@ Route::prefix('ventas')->middleware('auth')->group(function () {
         Route::put('/update/{id}', 'Ventas\CotizacionController@update')->name('ventas.cotizacion.update');
         Route::get('/datos/{id}', 'Ventas\CotizacionController@show')->name('ventas.cotizacion.show');
         Route::get('/destroy/{id}', 'Ventas\CotizacionController@destroy')->name('ventas.cotizacion.destroy');
-        Route::get('reporte/{id}', 'Ventas\CotizacionController@report')->name('ventas.cotizacion.reporte');
+        Route::get('reporte/{id}/{nombre?}', 'Ventas\CotizacionController@report')->name('ventas.cotizacion.reporte')->where('nombre', '[A-Za-z0-9._-]+')->middleware('pdf.nombre');
         Route::get('email/{id}', 'Ventas\CotizacionController@email')->name('ventas.cotizacion.email');
         Route::get('documento/{id}', 'Ventas\CotizacionController@document')->name('ventas.cotizacion.documento');
         Route::get('/getProductoBarCode/{barcode}', 'Ventas\CotizacionController@getProductoBarCode')->name('ventas.cotizacion.getProductoBarCode');
@@ -184,7 +184,7 @@ Route::prefix('ventas')->middleware('auth')->group(function () {
         Route::post('store', 'Ventas\GuiaController@store')->name('ventas.guiasremision.store');
         Route::put('update/{id}', 'Ventas\GuiaController@update')->name('ventas.guiasremision.update');
         Route::post('destroy', 'Ventas\GuiaController@destroy')->name('ventas.guiasremision.delete');
-        Route::get('show/{id}', 'Ventas\GuiaController@show')->name('ventas.guiasremision.show');
+        Route::get('show/{id}/{nombre?}', 'Ventas\GuiaController@show')->name('ventas.guiasremision.show')->where('nombre', '[A-Za-z0-9._-]+')->middleware('pdf.nombre');
         Route::get('reporte/{id}', 'Ventas\GuiaController@report')->name('ventas.guiasremision.reporte');
         Route::get('tiendaDireccion/{id}', 'Ventas\GuiaController@tiendaDireccion')->name('ventas.guiasremision.tienda_direccion');
         Route::post('sunat/guia', 'Ventas\GuiaController@sunat')->name('ventas.guiasremision.sunat');

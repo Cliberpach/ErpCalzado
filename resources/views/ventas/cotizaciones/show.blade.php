@@ -364,7 +364,7 @@ function generarReporte() {
         // showLoaderOnConfirm: true,
     }).then((result) => {
         if (result.value) {
-            window.location.href = "{{route('ventas.cotizacion.reporte', $cotizacion->id)}}"
+            window.location.href = "{{ route('ventas.cotizacion.reporte', ['id' => $cotizacion->id, 'nombre' => \App\Classes\NombreArchivoPdf::cotizacion($cotizacion, optional($cotizacion->cliente)->documento) . '.pdf']) }}"
             Swal.fire({
                 title: '¡Cargando!',
                 type: 'info',

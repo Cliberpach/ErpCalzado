@@ -269,7 +269,7 @@
                     className: "text-center",
                     searchable:false,
                     render: function(data) {
-                        var html = "<div class='btn-group'><a class='btn btn-danger btn-sm' href='#'  onclick='reportePdf("+data.id+")' title='Pdf'><i class='fa fa-file-pdf-o'></i></a><a class='btn btn-primary btn-sm d-none' href='#'  title='Excel'><i class='fa fa-file-excel-o'></i></a></div>";
+                        var html = "<div class='btn-group'><a class='btn btn-danger btn-sm' href='#'  onclick='reportePdf("+data.id+",\""+(data.nombre_pdf||"")+"\")' title='Pdf'><i class='fa fa-file-pdf-o'></i></a><a class='btn btn-primary btn-sm d-none' href='#'  title='Excel'><i class='fa fa-file-excel-o'></i></a></div>";
                         return html;
                     }
                 }
@@ -286,10 +286,10 @@
         return false;
     }
 
-    function reportePdf(id)
+    function reportePdf(id, nombre)
     {
         var url="{{route('Caja.reporte.movimiento',':id')}}"
-        url = url.replace(':id',id);
+        url = urlPdfConNombre(url.replace(':id',id), nombre);
         window.open(url, "REPORTE CAJA", "width=900, height=600")
     }
 

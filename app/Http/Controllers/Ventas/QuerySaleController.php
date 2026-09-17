@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Ventas;
 
+use App\Classes\NombreArchivoPdf;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Ventas\QuerySale\QuerySaleRequest;
 use App\Http\Services\Ventas\Ventas\VentaManager;
@@ -56,7 +57,12 @@ array:6 [ // app\Http\Controllers\Market\Ventas\ConsultarComprobanteController.p
                         's.correlativo AS correlativo',
                         's.total_pagar',
                         's.tipo_venta_codigo',
-                        's.created_at'
+                        's.created_at',
+                        // Lo que NombreArchivoPdf necesita para nombrar el PDF.
+                        's.documento_cliente',
+                        's.contingencia',
+                        's.serie_contingencia',
+                        's.correlativo_contingencia'
                     )
                     ->where('s.tipo_venta_codigo', $tipo_doc)
                     ->whereDate('s.created_at', $fecha_emision)
@@ -83,6 +89,10 @@ array:6 [ // app\Http\Controllers\Market\Ventas\ConsultarComprobanteController.p
             }
             if ($cant === 1) {
                 $documento  =   $documento[0];
+                // El nombre lo arma el servidor; el JS sólo lo pega a la URL.
+                $documento->nombre_pdf = $tipo_doc != '07'
+                    ? NombreArchivoPdf::documentoVenta($documento)
+                    : NombreArchivoPdf::notaElectronica($documento);
             }
             if ($cant === 0) {
                 $documento  =   null;
@@ -147,14 +157,15 @@ array:7 [▼ // app\Http\Controllers\Market\Ventas\ConsultarComprobanteControlle
   "monto_total"         => "2.000000"
 ]
 */
-    public function pdf(Request $request)
+    public function pdf(Request $request, $nombre = null)
     {
         //============ VALIDAR EXISTENCIA DEL COMPROBANTE =========
         $documento              =   $this->validarExistencia($request);
         $sale_id                =   $documento->id;
         $sale                   =   Documento::findOrFail($sale_id);
         $res                    =   $this->s_manager->getVoucherPdf($sale_id, 0);
-        return $res['pdf']->stream($res['nombre'] . '.pdf');
+        // getVoucherPdf ya devuelve el nombre con extensión.
+        return $res['pdf']->stream($res['nombre']);
     }
 
 

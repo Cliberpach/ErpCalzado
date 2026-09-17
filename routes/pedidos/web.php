@@ -29,7 +29,7 @@
             Route::delete('pedidos/{id}', 'Pedidos\PedidoController@destroy')->name('pedidos.pedido.destroy');
             Route::get('getProductosByModelo/{modelo_id}', 'Pedidos\PedidoController@getProductosByModelo')->name('pedidos.pedido.getProductosByModelo');
             Route::get('/getColoresTallas/{almacen_id}/{producto_id}', 'Pedidos\PedidoController@getColoresTallas')->name('pedidos.pedido.getColoresTallas');
-            Route::get('reporte/{id}', 'Pedidos\PedidoController@report')->name('pedidos.pedido.reporte');
+            Route::get('reporte/{id}/{nombre?}', 'Pedidos\PedidoController@report')->name('pedidos.pedido.reporte')->where('nombre', '[A-Za-z0-9._-]+')->middleware('pdf.nombre');
             Route::get('validar-tipo-venta/{comprobante_id}', 'Pedidos\PedidoController@validarTipoVenta')->name('pedidos.pedido.validarTipoVenta');
             Route::get('get-atencion-detalles/{pedido_id}/{documento_id}', 'Pedidos\PedidoController@getAtencionDetalles')->name('pedidos.pedido.getAtencionDetalles');
             Route::get('get-atenciones-pedido/{pedido_id}', 'Pedidos\PedidoController@getAtenciones')->name('pedidos.pedido.getAtenciones');

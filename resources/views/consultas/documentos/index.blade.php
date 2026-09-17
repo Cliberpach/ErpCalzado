@@ -254,10 +254,10 @@
                     className: "text-center",
                     render: function(data) {
                         //Ruta Detalle
-                        const url_venta = route("ventas.documento.comprobante", { id: data.id,size:100});
+                        const url_venta = urlPdfConNombre(route("ventas.documento.comprobante", { id: data.id,size:100}), data.nombre_pdf);
 
                         let url_nota = '{{ route("ventas.notas.show", ":id")}}';
-                        url_nota = url_nota.replace(':id', data.id);
+                        url_nota = urlPdfConNombre(url_nota.replace(':id', data.id), data.nombre_pdf);
 
                         let url_convertir = '{{ route("consultas.documento.convertir", ":id")}}';
                         url_convertir = url_convertir.replace(':id', data.id);

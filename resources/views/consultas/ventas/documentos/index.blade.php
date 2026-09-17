@@ -337,8 +337,9 @@ function loadTable()
 
 $(".dataTables-orden").on('click','.btn-pdf',function(){
     var data = $(".dataTables-orden").dataTable().fnGetData($(this).closest('tr'));
-    let fn_pdf = 'comprobanteElectronico(' + data.id + ')';
-    let fn_ticket = 'comprobanteElectronicoTicket(' + data.id + ')';
+    const nombre_pdf = data.nombre_pdf ? JSON.stringify(data.nombre_pdf) : 'null';
+    let fn_pdf = 'comprobanteElectronico(' + data.id + ',' + nombre_pdf + ')';
+    let fn_ticket = 'comprobanteElectronicoTicket(' + data.id + ',' + nombre_pdf + ')';
     $('.descarga-title').html(data.serie + '-' + data.correlativo);
     $('.file-pdf').attr('onclick',fn_pdf);
     $('.file-ticket').attr('onclick',fn_ticket);
@@ -395,13 +396,13 @@ function cambiarEstado(id) {
 
 }
 
-function comprobanteElectronico(id) {
-    const url = route("ventas.documento.comprobante", { id: id,size:100});
+function comprobanteElectronico(id, nombre) {
+    const url = urlPdfConNombre(route("ventas.documento.comprobante", { id: id,size:100}), nombre);
     window.open(url, "Comprobante SISCOM", "width=900, height=600")
 }
 
-function comprobanteElectronicoTicket(id) {
-    const url = route("ventas.documento.comprobante", { id: id,size:80});
+function comprobanteElectronicoTicket(id, nombre) {
+    const url = urlPdfConNombre(route("ventas.documento.comprobante", { id: id,size:80}), nombre);
     window.open(url, "Comprobante SISCOM", "width=900, height=600");
 }
 

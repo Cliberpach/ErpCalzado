@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Consultas\Ventas;
 
+use App\Classes\NombreArchivoPdf;
 use App\Http\Controllers\Controller;
 use App\Ventas\Documento\Documento;
 use Carbon\Carbon;
@@ -46,6 +47,9 @@ class DocumentoController extends Controller
 
             $coleccion->push([
                 'id' => $documento->id,
+                // Va al final de la URL del PDF: el visor de Acrobat ignora el
+                // Content-Disposition y toma el nombre de ahí.
+                'nombre_pdf' => NombreArchivoPdf::documentoVenta($documento),
                 'tipo_venta' => $documento->nombreTipo(),
                 'tipo_venta_id' => $documento->tipo_venta,
                 'forma_pago' => $documento->formaPago(),
