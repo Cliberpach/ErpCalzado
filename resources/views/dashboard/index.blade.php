@@ -122,23 +122,13 @@
                                 @include('dashboard.pages.sales_sizes')
                             </div>
                             <div class="col-6 mb-3">
+                                @include('dashboard.pages.ranking_vendedores')
+                            </div>
+                            <div class="col-6 mb-3">
                                 @include('dashboard.pages.delivery_time')
                             </div>
 
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Top 8 Vendedores</h5>
-                    </div>
-                    <div class="card-body">
-                        @include('dashboard.pages.ranking_vendedores')
                     </div>
                 </div>
             </div>

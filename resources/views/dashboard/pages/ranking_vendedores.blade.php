@@ -4,6 +4,11 @@
         <p class="mt-2">Cargando...</p>
     </div>
 
+    {{-- Este widget vive dentro de la tarjeta "Estadísticas", a media anchura y
+         sin cabecera propia, así que lleva su título dentro como los gráficos
+         de al lado (que lo pintan desde Highcharts). --}}
+    <h5 class="rv-titulo">Top 8 Vendedores</h5>
+
     <div id="ranking-vendedores"></div>
 
     {{-- Se muestra cuando el periodo elegido no tiene ninguna venta: una tabla
@@ -16,27 +21,85 @@
 </div>
 
 <style>
-    #ranking-vendedores .rv-barra {
-        background: #e9ecef;
-        border-radius: 3px;
-        height: 6px;
-        overflow: hidden;
+    .rv-titulo {
+        color: #333;
+        font-size: 18px;
+        font-weight: 400;
+        margin: 8px 0 14px;
+        text-align: center;
     }
 
-    #ranking-vendedores .rv-barra > span {
-        background: #1ab394;
-        display: block;
-        height: 100%;
+    #ranking-vendedores table {
+        font-size: 13px;
+        table-layout: fixed;
+        width: 100%;
     }
 
-    #ranking-vendedores .rv-puesto {
-        color: #999;
-        font-weight: 700;
-        width: 32px;
+    #ranking-vendedores th {
+        border-top: 0;
+        color: #888;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: .03em;
+        padding: 4px 6px;
+        text-transform: uppercase;
     }
 
     #ranking-vendedores td {
+        padding: 5px 6px;
         vertical-align: middle;
+    }
+
+    #ranking-vendedores .rv-puesto {
+        color: #b0b0b0;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    /* La barra va de fondo de la celda del nombre: a media anchura no hay sitio
+       para una fila propia, y así no roba alto a la tabla. */
+    #ranking-vendedores .rv-nombre {
+        background-repeat: no-repeat;
+        border-radius: 2px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #ranking-vendedores .rv-num {
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    #ranking-vendedores .rv-monto {
+        font-weight: 600;
+    }
+
+    #ranking-vendedores .rv-pie {
+        color: #999;
+        font-size: 11px;
+        line-height: 1.3;
+        margin: 6px 0 0;
+    }
+
+    /* Ventana estrecha: Bootstrap 4 mantiene col-6 también en móvil, así que la
+       tabla se queda a media pantalla. Se recorta lo prescindible antes de que
+       las cifras empiecen a partirse. */
+    @media (max-width: 991px) {
+        #ranking-vendedores table {
+            font-size: 12px;
+        }
+
+        #ranking-vendedores .rv-ventas {
+            display: none;
+        }
+    }
+
+    @media (max-width: 575px) {
+        #ranking-vendedores .rv-pares {
+            display: none;
+        }
     }
 </style>
 
@@ -89,44 +152,49 @@
             // La barra es relativa al primero, que ya viene ordenado por monto.
             const maximo = Number(data[0].monto) || 0;
 
-            const soles = (n) => Number(n).toLocaleString('es-PE', {
+            const entero = (n) => Number(n).toLocaleString('es-PE', {
+                maximumFractionDigits: 0
+            });
+            const conDecimales = (n) => Number(n).toLocaleString('es-PE', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
 
             const filas = data.map((v, i) => {
                 const monto = Number(v.monto) || 0;
-                const ancho = maximo > 0 ? (monto / maximo) * 100 : 0;
+                const pct = maximo > 0 ? Math.max(0, Math.min(100, (monto / maximo) * 100)) : 0;
+                const nombre = escapeHtmlRanking(v.vendedor);
+
+                // Degradado en vez de un <span>: se adapta solo al ancho de la
+                // celda, que aquí cambia con la ventana.
+                const fondo = `linear-gradient(to right, rgba(26,179,148,.20) ${pct.toFixed(1)}%, transparent ${pct.toFixed(1)}%)`;
 
                 return `
                     <tr>
                         <td class="rv-puesto">${i + 1}</td>
-                        <td>
-                            <div>${escapeHtmlRanking(v.vendedor)}</div>
-                            <div class="rv-barra mt-1"><span style="width:${ancho.toFixed(1)}%"></span></div>
-                        </td>
-                        <td class="text-right">${Number(v.ventas).toLocaleString('es-PE')}</td>
-                        <td class="text-right">${Number(v.pares).toLocaleString('es-PE')}</td>
-                        <td class="text-right"><strong>S/ ${soles(monto)}</strong></td>
+                        <td class="rv-nombre" style="background-image:${fondo}" title="${nombre}">${nombre}</td>
+                        <td class="rv-num rv-ventas">${entero(v.ventas)}</td>
+                        <td class="rv-num rv-pares">${entero(v.pares)}</td>
+                        <td class="rv-num rv-monto" title="S/ ${conDecimales(monto)}">S/&nbsp;${entero(monto)}</td>
                     </tr>`;
             }).join('');
 
+            // Monto redondeado para que quepan las cinco columnas a media
+            // anchura; el importe exacto queda en el title de la celda.
             tabla.innerHTML = `
-                <table class="table table-sm mb-1">
+                <table class="table table-sm mb-0">
                     <thead>
                         <tr>
-                            <th style="width:32px;">#</th>
+                            <th style="width:26px;"></th>
                             <th>Vendedor</th>
-                            <th class="text-right" style="width:110px;">Ventas</th>
-                            <th class="text-right" style="width:110px;">Pares</th>
-                            <th class="text-right" style="width:160px;">Monto</th>
+                            <th class="rv-num rv-ventas" style="width:62px;">Ventas</th>
+                            <th class="rv-num rv-pares" style="width:62px;">Pares</th>
+                            <th class="rv-num" style="width:92px;">Monto</th>
                         </tr>
                     </thead>
                     <tbody>${filas}</tbody>
                 </table>
-                <p class="small text-muted mb-0">
-                    Incluye ventas al contado y al crédito, por eso no cuadra con el arqueo de caja.
-                </p>`;
+                <p class="rv-pie">Incluye ventas al contado y al crédito, por eso no cuadra con el arqueo de caja.</p>`;
         }
 
         // El nombre sale de users.usuario, que lo teclea una persona: se escapa
