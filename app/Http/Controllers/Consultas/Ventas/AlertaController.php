@@ -288,10 +288,32 @@ class AlertaController extends Controller
     }
 
     public function anularVenta($id){
+        // Fuera del try: si no hay permiso debe salir 403, no caer en el catch
+        // y acabar como un "error al anular" cualquiera.
+        $this->authorize('haveaccess', 'ventas.documento.anular_alerta');
+
+        $doc = Documento::findOrFail($id);
+
+        // Se rechaza ANTES de tocar nada. Un comprobante ya enviado a SUNAT no
+        // se anula cambiando el estado local: requiere comunicación de baja o
+        // nota de crédito. sunat = '1' (aceptado) y '2' (aceptado con
+        // observaciones) significan que SUNAT ya lo tiene.
+        if ($doc->estado === 'ANULADO') {
+            Session::flash('error_anulado', 'El comprobante ya está anulado.');
+            return redirect()->route('consultas.ventas.alerta.envio')
+                ->with('anulado_error', 'El comprobante ya está anulado.');
+        }
+
+        if (in_array((string) $doc->sunat, ['1', '2'], true)) {
+            $mensaje = 'El comprobante ya fue aceptado por SUNAT: no se puede anular desde aquí.';
+            Session::flash('error_anulado', $mensaje);
+            return redirect()->route('consultas.ventas.alerta.envio')
+                ->with('anulado_error', $mensaje);
+        }
+
         try{
 
             DB::beginTransaction();
-            $doc = Documento::find($id);
             $doc->estado="ANULADO";
             $doc->update();
 
@@ -1131,11 +1153,17 @@ class AlertaController extends Controller
                 'guias_remision.cantidad_productos',
                 'guias_remision.peso_productos',
                 'guias_remision.regularize',
-                'guias_remision.getCdrResponse',
+                // guias_remision NO tiene getCdrResponse ni getRegularizeResponse
+                // (esas columnas JSON son de cotizacion_documento). Aquí el CDR
+                // viene desglosado en columnas propias, así que se leen de ahí y
+                // se mantienen los mismos alias que espera la vista.
+                DB::raw('guias_remision.cdr_response_code as getCdrResponse'),
                 DB::raw('DATE_FORMAT(guias_remision.created_at, "%Y-%m-%d") as fecha'),
-                DB::raw('ifnull((json_unquote(json_extract(guias_remision.getRegularizeResponse, "$.code"))),"-") as code_regularize'),
-                DB::raw('ifnull((json_unquote(json_extract(guias_remision.getCdrResponse, "$.code"))),"-") as code'),
-                DB::raw('ifnull((json_unquote(json_extract(guias_remision.getCdrResponse, "$.description"))),"-") as description')
+                // No hay equivalente del código de regularización en esta tabla:
+                // se devuelve "-" para no romper el listado.
+                DB::raw('"-" as code_regularize'),
+                DB::raw('ifnull(guias_remision.cdr_response_code,"-") as code'),
+                DB::raw('ifnull(guias_remision.cdr_response_description,"-") as description')
             )
             ->where('guias_remision.estado', '!=', 'NULO')
             ->where('guias_remision.sunat', '0');

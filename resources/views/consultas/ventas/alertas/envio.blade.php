@@ -391,10 +391,24 @@ function anularVenta(id) {
     }).then((result) => {
         if (result.value) {
 
+            // La ruta es POST y exige CSRF: se envía por formulario, no por
+            // navegación. El botón que llamaba a esta función está comentado
+            // más arriba; esto queda listo por si se reactiva.
             var url = '{{ route("consultas.ventas.alerta.anularVenta", ":id")}}';
             url = url.replace(':id',id);
 
-            window.location.href = url
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+
+            var token = document.createElement('input');
+            token.type  = 'hidden';
+            token.name  = '_token';
+            token.value = '{{ csrf_token() }}';
+            form.appendChild(token);
+
+            document.body.appendChild(form);
+            form.submit();
 
             Swal.fire({
                 title: '¡Cargando!',
