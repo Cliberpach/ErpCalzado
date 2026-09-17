@@ -121,8 +121,14 @@ class CopiasSeguridadRepository
         $mysqldump = env('MYSQLDUMP_PATH', 'mysqldump');
         $passArg   = !empty($pass) ? '--password=' . escapeshellarg($pass) : '';
 
+        // --routines            incluye funciones y procedimientos; sin esto el volcado
+        //                       se restauraba sin fn_calcular_saldo ni los sp de kardex
+        //                       y stocks, y la base quedaba a medias.
+        // --single-transaction  vuelca sin bloquear: las 119 tablas son InnoDB.
+        // --no-tablespaces      mysqldump 8.0.21+ exige el privilegio PROCESS sin esta opción.
         $cmd = sprintf(
-            '%s --user=%s %s --host=%s --port=%s --result-file=%s %s',
+            '%s --routines --single-transaction --no-tablespaces'
+            . ' --user=%s %s --host=%s --port=%s --result-file=%s %s',
             $mysqldump,
             escapeshellarg($user),
             $passArg,

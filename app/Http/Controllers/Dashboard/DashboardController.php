@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Services\Dashboard\DashboardManager;
 use App\Mantenimiento\Sedes\Sede;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class DashboardController extends Controller
@@ -41,12 +42,7 @@ array:3 [
 
             return response()->json(['success' => true, 'message' => 'Datos obtenidos', 'data' => $data]);
         } catch (Throwable $th) {
-            return response()->json([
-                'success' => false,
-                'message' => $th->getMessage(),
-                'line' => $th->getLine(),
-                'file' => $th->getFile()
-            ]);
+            return $this->errorJson($th, 'getData');
         }
     }
 
@@ -57,12 +53,7 @@ array:3 [
 
             return response()->json(['success' => true, 'message' => 'Datos obtenidos', 'data' => $data]);
         } catch (Throwable $th) {
-            return response()->json([
-                'success' => false,
-                'message' => $th->getMessage(),
-                'line' => $th->getLine(),
-                'file' => $th->getFile()
-            ]);
+            return $this->errorJson($th, 'getSales');
         }
     }
 
@@ -73,12 +64,7 @@ array:3 [
 
             return response()->json(['success' => true, 'message' => 'Datos obtenidos', 'data' => $data]);
         } catch (Throwable $th) {
-            return response()->json([
-                'success' => false,
-                'message' => $th->getMessage(),
-                'line' => $th->getLine(),
-                'file' => $th->getFile()
-            ]);
+            return $this->errorJson($th, 'getSalesOrigin');
         }
     }
 
@@ -89,12 +75,7 @@ array:3 [
 
             return response()->json(['success' => true, 'message' => 'Datos obtenidos', 'data' => $data]);
         } catch (Throwable $th) {
-            return response()->json([
-                'success' => false,
-                'message' => $th->getMessage(),
-                'line' => $th->getLine(),
-                'file' => $th->getFile()
-            ]);
+            return $this->errorJson($th, 'getTopProducts');
         }
     }
 
@@ -105,12 +86,7 @@ array:3 [
 
             return response()->json(['success' => true, 'message' => 'Datos obtenidos', 'data' => $data]);
         } catch (Throwable $th) {
-            return response()->json([
-                'success' => false,
-                'message' => $th->getMessage(),
-                'line' => $th->getLine(),
-                'file' => $th->getFile()
-            ]);
+            return $this->errorJson($th, 'getConversionRate');
         }
     }
 
@@ -121,12 +97,7 @@ array:3 [
 
             return response()->json(['success' => true, 'message' => 'Datos obtenidos', 'data' => $data]);
         } catch (Throwable $th) {
-            return response()->json([
-                'success' => false,
-                'message' => $th->getMessage(),
-                'line' => $th->getLine(),
-                'file' => $th->getFile()
-            ]);
+            return $this->errorJson($th, 'getParesYearMonth');
         }
     }
 
@@ -137,12 +108,7 @@ array:3 [
 
             return response()->json(['success' => true, 'message' => 'Datos obtenidos', 'data' => $data]);
         } catch (Throwable $th) {
-            return response()->json([
-                'success' => false,
-                'message' => $th->getMessage(),
-                'line' => $th->getLine(),
-                'file' => $th->getFile()
-            ]);
+            return $this->errorJson($th, 'getSalesColor');
         }
     }
 
@@ -153,12 +119,7 @@ array:3 [
 
             return response()->json(['success' => true, 'message' => 'Datos obtenidos', 'data' => $data]);
         } catch (Throwable $th) {
-            return response()->json([
-                'success' => false,
-                'message' => $th->getMessage(),
-                'line' => $th->getLine(),
-                'file' => $th->getFile()
-            ]);
+            return $this->errorJson($th, 'getCustomersActives');
         }
     }
 
@@ -169,12 +130,7 @@ array:3 [
 
             return response()->json(['success' => true, 'message' => 'Datos obtenidos', 'data' => $data]);
         } catch (Throwable $th) {
-            return response()->json([
-                'success' => false,
-                'message' => $th->getMessage(),
-                'line' => $th->getLine(),
-                'file' => $th->getFile()
-            ]);
+            return $this->errorJson($th, 'getSalesSizes');
         }
     }
 
@@ -185,12 +141,31 @@ array:3 [
 
             return response()->json(['success' => true, 'message' => 'Datos obtenidos', 'data' => $data]);
         } catch (Throwable $th) {
-            return response()->json([
-                'success' => false,
-                'message' => $th->getMessage(),
-                'line' => $th->getLine(),
-                'file' => $th->getFile()
-            ]);
+            return $this->errorJson($th, 'getDeliveryTime');
         }
+    }
+
+    /**
+     * Respuesta de error de los widgets.
+     *
+     * Nada de getMessage(), line ni file en el JSON: devolvían al navegador el
+     * SQL completo y la ruta absoluta del servidor, con APP_DEBUG o sin él.
+     * El detalle va al log en una sola línea, sin traza: laravel.log ya crece
+     * 300-400 KB al día en este sistema.
+     */
+    private function errorJson(Throwable $th, string $origen)
+    {
+        // El mensaje de una QueryException trae el SQL con saltos de línea: sin
+        // aplanarlo, una sola incidencia ocupa cinco líneas del log y se pierde
+        // al filtrar con grep.
+        $detalle = trim(preg_replace('/\s+/', ' ', $th->getMessage()));
+
+        Log::error('dashboard.' . $origen . ': ' . $detalle
+            . ' [' . $th->getFile() . ':' . $th->getLine() . ']');
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No se pudieron obtener los datos.',
+        ]);
     }
 }

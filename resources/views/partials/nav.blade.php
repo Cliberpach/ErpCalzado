@@ -471,7 +471,8 @@
 @can('restore', [Auth::user(), ['mantenimiento.colaborador.index', 'mantenimiento.empresa.index',
     'mantenimiento.sedes.index', 'mantenimiento.condicion.index', 'mantenimiento.tabla.index',
     'mantenimiento.configuracion.index', 'mantenimiento.metodo_entrega.index', 'mantenimiento.cuentas.index',
-    'mantenimiento.tipo_pago.index', 'mantenimiento.promociones.index', 'copia_seguridad.index']])
+    'mantenimiento.tipo_pago.index', 'mantenimiento.promociones.index',
+    'mantenimiento.copias_seguridad.gestionar']])
     <li class="@yield('mantenimiento-active')">
         <a href="#"><i class="fa fa-cogs"></i> <span class="nav-label">Mantenimento</span><span
                 class="fa arrow"></span></a>
