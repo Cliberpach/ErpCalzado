@@ -18,6 +18,21 @@ class CajaMovimientoManager
         return $this->service->reporteMovimiento($id);
     }
 
+    public function reporteProductos(int $id)
+    {
+        return $this->service->reporteProductos($id);
+    }
+
+    public function nombreArchivoReporte(int $id, string $tipo): string
+    {
+        return $this->service->nombreArchivoReporte($id, $tipo);
+    }
+
+    public function formatoNombreArchivo($ruc, string $tipo, int $id, $fechaApertura): string
+    {
+        return $this->service->formatoNombreArchivo($ruc, $tipo, $id, $fechaApertura);
+    }
+
     public function datosCierre(int $id): CajaMovimientoDto
     {
         return $this->service->datosCierre($id);

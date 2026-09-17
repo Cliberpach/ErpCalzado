@@ -7,7 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\MovimientoCaja\MovimientoCajaAperturaRequest;
 use App\Http\Services\Caja\Caja\CajaManager;
 use App\Http\Services\Caja\CajaMovimiento\CajaMovimientoManager;
+use App\Http\Services\Caja\CajaMovimiento\CajaMovimientoService;
 use App\Mantenimiento\Colaborador\Colaborador;
+use App\Mantenimiento\Empresa\Empresa;
 use App\Mantenimiento\Sedes\Sede;
 use App\Pos\Caja;
 use App\Pos\MovimientoCaja;
@@ -295,11 +297,28 @@ array:3 [▼
                 'fecha',
                 'estado',
             ]);
+        // El RUC se lee una sola vez: nombra todas las filas del listado.
+        $ruc = optional(Empresa::first())->ruc;
+
         foreach ($movimientos as $key => $movimiento) {
             $colaborador    =   Colaborador::find($movimiento->colaborador_id);
             $sede           =   Sede::find($movimiento->sede_id);
 
             array_push($datos, [
+                // Van al final de la URL del PDF para que el visor de Acrobat,
+                // que ignora el Content-Disposition, sugiera el mismo nombre.
+                'nombre_dinero'     =>  $this->s_caja->formatoNombreArchivo(
+                    $ruc,
+                    CajaMovimientoService::REPORTE_DINERO,
+                    (int) $movimiento->id,
+                    $movimiento->fecha_apertura
+                ),
+                'nombre_cantidades' =>  $this->s_caja->formatoNombreArchivo(
+                    $ruc,
+                    CajaMovimientoService::REPORTE_CANTIDADES,
+                    (int) $movimiento->id,
+                    $movimiento->fecha_apertura
+                ),
                 'colaborador_nombre'    =>  $colaborador->nombre,
                 'sede_nombre'           =>  $sede->nombre,
                 'id' => $movimiento->id,
@@ -476,10 +495,20 @@ array:4 [
         }
     }
 
-    public function reporteMovimiento($id)
+    public function reporteMovimiento($id, $nombre = null)
     {
         $pdf = $this->s_caja->reporteMovimiento((int) $id);
-        return $pdf->stream();
+        return $pdf->stream(
+            $this->s_caja->nombreArchivoReporte((int) $id, CajaMovimientoService::REPORTE_DINERO) . '.pdf'
+        );
+    }
+
+    public function reporteProductos($id, $nombre = null)
+    {
+        $pdf = $this->s_caja->reporteProductos((int) $id);
+        return $pdf->stream(
+            $this->s_caja->nombreArchivoReporte((int) $id, CajaMovimientoService::REPORTE_CANTIDADES) . '.pdf'
+        );
     }
     private function ObtenerTotales($id)
     {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Reporte Caja Movimiento</title>
+    <title>{{ $tituloDocumento }}</title>
     <style>
         body { font-family: Arial, Helvetica, sans-serif; color: #1a1a1a; font-size: 11px; }
 

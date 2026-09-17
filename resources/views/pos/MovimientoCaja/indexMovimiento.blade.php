@@ -126,6 +126,31 @@
         .my-swal {
             z-index: 3000 !important;
         }
+
+        /* El menú ⋮ se cuelga del <body> mientras está abierto (ver
+           flotarMenuAcciones). Queda por debajo de los modales, que usan 1050. */
+        .menu-reportes-caja {
+            z-index: 1040;
+            min-width: 180px;
+            text-transform: none;
+            text-align: left;
+        }
+
+        /* Estado flotante: el menú está colgado del <body>. Hay que anular
+           .dropdown-menu-right (right:0): fuera del .btn-group se resuelve
+           contra el viewport y, junto al left que pone el JS, estiraba el menú
+           de un borde al otro de la pantalla. También el float y el margin que
+           trae .dropdown-menu. El JS sólo escribe top/left; el ancho lo decide
+           el contenido, entre min-width y max-width. */
+        .menu-reportes-caja.menu-flotante {
+            position: fixed;
+            right: auto;
+            bottom: auto;
+            float: none;
+            width: auto;
+            max-width: 280px;
+            margin: 0;
+        }
     </style>
 @endpush
 @push('scripts')
@@ -139,6 +164,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             iniciarDataTableMovimientos();
+            flotarMenuAcciones();
             iniciarSelect2();
             events();
         })
@@ -147,6 +173,105 @@
         function events() {
             eventsMdlAbrirCaja();
             eventsCerrarCaja();
+        }
+
+        // La tabla vive dentro de .table-responsive (overflow) y DataTables mete
+        // ahí un contenedor posicionado, así que el menú quedaba recortado y la
+        // tabla sacaba scroll. Mientras está abierto se cuelga del <body> con
+        // position:fixed y al cerrarse vuelve a su sitio: flota por encima sin
+        // tocar el tamaño de la tabla.
+        function flotarMenuAcciones() {
+            var SEL_GRUPO = '.dataTables-cajas .btn-group';
+            var $menuFlotante = null;
+
+            // Borde izquierdo mínimo: el área de contenido, para no invadir
+            // nunca el menú lateral.
+            function limiteIzquierdo() {
+                var wrapper = document.getElementById('page-wrapper');
+                var min = wrapper ? wrapper.getBoundingClientRect().left : 0;
+                return Math.max(min, 0) + 4;
+            }
+
+            function colocar($btn, $menu) {
+                var r = $btn[0].getBoundingClientRect();
+                // El menú ya está en el DOM y es medible (display:block +
+                // visibility:hidden), así que outerWidth/Height son reales.
+                var ancho = $menu.outerWidth(),
+                    alto = $menu.outerHeight();
+                var vh = window.innerHeight,
+                    vw = window.innerWidth,
+                    minLeft = limiteIzquierdo(),
+                    sep = 2;
+
+                var top = r.bottom + sep;
+                if (top + alto > vh - 4) {
+                    top = r.top - alto - sep; // no entra debajo: se abre hacia arriba
+                }
+                if (top < 4) {
+                    top = 4;
+                }
+
+                var left = r.right - ancho; // alineado a la derecha del botón
+                if (left + ancho > vw - 4) {
+                    left = vw - ancho - 4;
+                }
+                if (left < minLeft) {
+                    left = minLeft;
+                }
+
+                $menu.css({
+                    top: Math.round(top) + 'px',
+                    left: Math.round(left) + 'px'
+                });
+            }
+
+            $(document)
+                .on('show.bs.dropdown', SEL_GRUPO, function() {
+                    var $menu = $(this).children('.dropdown-menu');
+                    if (!$menu.length) return;
+                    $menuFlotante = $menu;
+                    // Se cuelga del <body> y se hace medible sin que se vea:
+                    // display:block da tamaño real, visibility:hidden evita el
+                    // parpadeo en la esquina antes de posicionarlo.
+                    $menu.data('grupoOrigen', this)
+                        .appendTo(document.body)
+                        .addClass('menu-flotante')
+                        .css({
+                            top: '0px',
+                            left: '0px',
+                            display: 'block',
+                            visibility: 'hidden'
+                        });
+                    colocar($(this).find('[data-toggle="dropdown"]'), $menu);
+                })
+                .on('shown.bs.dropdown', SEL_GRUPO, function() {
+                    if (!$menuFlotante) return;
+                    // Ya posicionado: se muestra. Se recoloca por si el ancho
+                    // cambió al aplicarse la clase .show.
+                    colocar($(this).find('[data-toggle="dropdown"]'), $menuFlotante);
+                    $menuFlotante.css('visibility', 'visible');
+                })
+                .on('hidden.bs.dropdown', SEL_GRUPO, function() {
+                    if (!$menuFlotante) return;
+                    $menuFlotante.removeAttr('style')
+                        .removeClass('menu-flotante')
+                        .appendTo($menuFlotante.data('grupoOrigen'));
+                    $menuFlotante = null;
+                });
+
+            // Al scrollear o redimensionar el menú sigue al botón; si el botón
+            // deja de verse, se cierra.
+            $(window).on('scroll resize', function() {
+                if (!$menuFlotante) return;
+                var $btn = $($menuFlotante.data('grupoOrigen')).find('[data-toggle="dropdown"]');
+                if (!$btn.length) return;
+                var r = $btn[0].getBoundingClientRect();
+                if (r.bottom < 0 || r.top > window.innerHeight) {
+                    $btn.dropdown('toggle');
+                    return;
+                }
+                colocar($btn, $menuFlotante);
+            });
         }
 
         function iniciarDataTableMovimientos() {
@@ -265,14 +390,14 @@
                         data: null,
                         className: "text-center",
                         "render": function(data, type, row, meta) {
-                            var html =
-                                "<div class='btn-group'><a class='btn btn-primary btn-sm' href='#' title='Caja Cerrada'><i class='fa fa-check'> Caja Cerrada</i></a><a class='btn btn-danger btn-sm' href='#'  onclick='reporte(" +
-                                data.id +
-                                ")' title='Pdf'><i class='fas fa-file-pdf'></i></a></div>";
+                            var html = `<div class='btn-group'>
+                                <a class='btn btn-primary btn-sm' href='#' title='Caja Cerrada'><i class='fa fa-check'> Caja Cerrada</i></a>
+                                ${menuReportes(data)}
+                                </div>`;
                             if (data.fecha_Cierre == "-") {
                                 html = `<div class='btn-group'>
                                 <button class='btn btn-warning btn-sm' onclick='cerrarCaja(${data.id})' title='Modificar'><i class='fa fa-lock'> Close</i></button>
-                                <button class='btn btn-danger btn-sm'  onclick='reporte(${data.id})' title='Pdf'><i class='fas fa-file-pdf'></i></button>
+                                ${menuReportes(data)}
                                 <button class='btn btn-block btn-sm btn-primary' id='btn_mostrar_colaborades_${data.id}'  data_id=${data.id}  onclick='mostrarColaboradores(${data.id})'>Detalles</button>
                                 </div>
                                 `
@@ -393,10 +518,47 @@
         }
 
 
-        function reporte(id) {
-            var url = "{{ route('Caja.reporte.movimiento', ':id') }}"
-            url = url.replace(':id', id);
+        // El nombre viaja también como último tramo de la URL: el visor de
+        // Adobe Acrobat ignora el Content-Disposition y toma de ahí el nombre
+        // al guardar. El servidor lo manda ya armado en la fila.
+        function urlConNombre(plantilla, id, nombre) {
+            var url = plantilla.replace(':id', id);
+            return nombre ? url + '/' + nombre + '.pdf' : url;
+        }
+
+        function reporte(id, nombre) {
+            var url = urlConNombre("{{ route('Caja.reporte.movimiento', ':id') }}", id, nombre);
             window.open(url, "REPORTE CAJA", "width=900, height=600")
+        }
+
+        function reporteCantidades(id, nombre) {
+            var url = urlConNombre("{{ route('Caja.reporte.productos', ':id') }}", id, nombre);
+            window.open(url, "REPORTE CANTIDADES CAJA", "width=900, height=600")
+        }
+
+        // Menú ⋮ de la columna ACCIONES. Sólo lleva reportes: los botones que
+        // ejecutan algo (cerrar caja, detalles) siguen visibles en la fila.
+        // data-display="static" desactiva Popper: el menú se saca al <body> y se
+        // posiciona a mano (ver flotarMenuAcciones más abajo).
+        function menuReportes(fila) {
+            const id = fila.id;
+            return `<button type='button' class='btn btn-secondary btn-sm'
+                        data-toggle='dropdown' data-display='static'
+                        aria-haspopup='true' aria-expanded='false' title='Más opciones'>
+                        <i class='fas fa-ellipsis-v'></i>
+                    </button>
+                    <ul class='dropdown-menu dropdown-menu-right menu-reportes-caja'>
+                        <li>
+                            <a class='dropdown-item' href='#' onclick='reporte(${id}, "${fila.nombre_dinero}"); return false;'>
+                                <i class='fas fa-chart-bar text-danger mr-2'></i> Reporte Dinero
+                            </a>
+                        </li>
+                        <li>
+                            <a class='dropdown-item' href='#' onclick='reporteCantidades(${id}, "${fila.nombre_cantidades}"); return false;'>
+                                <i class='fas fa-clipboard-list text-success mr-2'></i> Reporte Cantidades
+                            </a>
+                        </li>
+                    </ul>`;
         }
 
         //========= TRAER DATOS DEL MOVIMIENTO CAJA Y ABRIR MODAL CERRAR CAJA =======

@@ -24,6 +24,15 @@ class CajaMovimientoRepository
         ])->findOrFail($id);
     }
 
+    /**
+     * Sólo lo que hace falta para armar el nombre del archivo del PDF, sin
+     * arrastrar las relaciones pesadas de getMovimientoConRelaciones().
+     */
+    public function getMovimientoParaNombre(int $id): MovimientoCaja
+    {
+        return MovimientoCaja::select('id', 'fecha_apertura')->findOrFail($id);
+    }
+
     public function getColaborador(?int $colaboradorId): ?Colaborador
     {
         return Colaborador::find($colaboradorId);
@@ -96,5 +105,134 @@ class CajaMovimientoRepository
 
         DetallesMovimientoCaja::where('movimiento_id', $movimientoId)
             ->update(['fecha_salida' => date('Y-m-d H:i:s')]);
+    }
+
+    // ─── PRODUCTOS VENDIDOS EN LA CAJA ────────────────────────────────────────
+
+    /**
+     * Reglas de filtrado de VENTAS CONTADO de una caja.
+     *
+     * Punto único de verdad: replican exactamente lo que hace
+     * CajaMovimientoCalculate::seccionVentasContado(), para que el desglose de
+     * productos cuadre con el TOTAL de VENTAS CONTADO del mismo reporte.
+     *
+     *   condicion_id = 1        -> sólo contado
+     *   convert_de_id IS NULL   -> el destino de una conversión NO se cuenta;
+     *                              la venta se imputa a la nota de venta de origen.
+     *                              Sin esto se contarían dos veces los mismos pares.
+     *   estado <> 'ANULADO'     -> las anuladas no suman (igual que el TOTAL)
+     *   cobrar = 'SI'           -> igual que el TOTAL
+     *
+     * Usa los alias dmv (detalle_movimiento_venta) y cd (cotizacion_documento).
+     * El único parámetro que espera es el id del movimiento de caja.
+     */
+    private function filtroVentasContado(): string
+    {
+        return " dmv.mcaja_id         = ?
+                 AND cd.condicion_id   = 1
+                 AND cd.convert_de_id IS NULL
+                 AND cd.estado        <> 'ANULADO'
+                 AND dmv.cobrar        = 'SI' ";
+    }
+
+    /**
+     * Importe real de una línea de detalle (alias d).
+     *
+     * Normalmente es importe_nuevo, que ya trae el descuento aplicado. Hay líneas
+     * antiguas con importe_nuevo = 0 sin ningún descuento registrado: ahí el dato
+     * bueno es importe. Se distingue un caso del otro por el descuento, porque un
+     * 100% de descuento sí deja importe_nuevo = 0 de forma legítima y no debe
+     * recuperarse el importe original.
+     */
+    private function importeLinea(): string
+    {
+        return " CASE WHEN IFNULL(d.importe_nuevo, 0)          = 0
+                       AND IFNULL(d.monto_descuento, 0)        = 0
+                       AND IFNULL(d.porcentaje_descuento, 0)   = 0
+                       AND IFNULL(d.precio_unitario_nuevo, 0)  = 0
+                      THEN IFNULL(d.importe, 0)
+                      ELSE IFNULL(d.importe_nuevo, 0)
+                 END ";
+    }
+
+    /**
+     * Líneas de producto vendidas en la caja, agregadas por
+     * categoría + modelo + color + talla.
+     *
+     * Consulta ÚNICA que alimenta tanto el resumen por categoría del reporte de
+     * caja como el reporte de productos, para no duplicar las reglas de filtrado.
+     * El pivote de tallas y los subtotales se hacen en PHP.
+     *
+     * La categoría se lee del maestro actual (productos -> categorias) porque el
+     * detalle de venta no la guarda desnormalizada. No se filtra por estado de la
+     * categoría: una venta histórica puede apuntar a una categoría ya anulada y
+     * debe seguir apareciendo.
+     *
+     * @return array<int, \stdClass>
+     */
+    public function getDetalleProductosCaja(int $mcajaId): array
+    {
+        $sql = "SELECT COALESCE(NULLIF(cat.descripcion, ''), '(SIN CATEGORIA)') AS categoria,
+                       COALESCE(NULLIF(d.nombre_modelo, ''), '(SIN MODELO)')    AS modelo,
+                       COALESCE(NULLIF(d.nombre_color, ''),  '(SIN COLOR)')     AS color,
+                       COALESCE(NULLIF(d.nombre_talla, ''),  'S/T')             AS talla,
+                       SUM(d.cantidad)               AS pares,
+                       SUM(" . $this->importeLinea() . ") AS monto
+                FROM   detalle_movimiento_venta dmv
+                JOIN   cotizacion_documento           cd ON cd.id = dmv.cdocumento_id
+                JOIN   cotizacion_documento_detalles  d  ON d.documento_id = cd.id
+                LEFT   JOIN productos  pr  ON pr.id  = d.producto_id
+                LEFT   JOIN categorias cat ON cat.id = pr.categoria_id
+                WHERE " . $this->filtroVentasContado() . "
+                  AND  d.estado    = 'ACTIVO'
+                  AND  d.eliminado = '0'
+                GROUP  BY categoria, modelo, color, talla";
+
+        return DB::select($sql, [$mcajaId]);
+    }
+
+    /**
+     * Piezas que explican la diferencia entre el TOTAL de VENTAS CONTADO y la suma
+     * de los productos, para el cuadre del reporte.
+     *
+     * Verificado sobre datos reales:
+     *   total_pagar = SUM(importe de línea) + monto_envio + monto_embalaje
+     * El envío y el embalaje se cobran en la cabecera y no tienen línea de detalle.
+     * Además hay ventas sin ninguna línea de detalle utilizable (todas anuladas o
+     * eliminadas): existen, no son anecdóticas, y se informan aparte.
+     *
+     * @return array<string, mixed>
+     */
+    public function getConciliacionCaja(int $mcajaId): array
+    {
+        $sinDetalle = "NOT EXISTS (
+                           SELECT 1 FROM cotizacion_documento_detalles d
+                           WHERE d.documento_id = v.id
+                             AND d.estado    = 'ACTIVO'
+                             AND d.eliminado = '0')";
+
+        $sql = "SELECT ROUND(SUM(v.monto_envio), 2)    AS envio,
+                       ROUND(SUM(v.monto_embalaje), 2) AS embalaje,
+                       ROUND(SUM(v.total_pagar), 2)    AS total_contado,
+                       SUM(CASE WHEN {$sinDetalle} THEN 1 ELSE 0 END) AS docs_sin_detalle,
+                       ROUND(SUM(CASE WHEN {$sinDetalle} THEN v.total_pagar ELSE 0 END), 2)
+                            AS monto_sin_detalle
+                FROM (
+                    SELECT DISTINCT cd.id, cd.monto_envio, cd.monto_embalaje, cd.total_pagar
+                    FROM   detalle_movimiento_venta dmv
+                    JOIN   cotizacion_documento cd ON cd.id = dmv.cdocumento_id
+                    WHERE " . $this->filtroVentasContado() . "
+                ) v";
+
+        $filas = DB::select($sql, [$mcajaId]);
+        $r     = isset($filas[0]) ? $filas[0] : null;
+
+        return array(
+            'envio'           => $r ? floatval($r->envio) : 0.0,
+            'embalaje'        => $r ? floatval($r->embalaje) : 0.0,
+            'totalContado'    => $r ? floatval($r->total_contado) : 0.0,
+            'docsSinDetalle'  => $r ? intval($r->docs_sin_detalle) : 0,
+            'montoSinDetalle' => $r ? floatval($r->monto_sin_detalle) : 0.0,
+        );
     }
 }

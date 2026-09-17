@@ -447,4 +447,173 @@ class CajaMovimientoCalculate
         $tipo = $this->tiposPago->firstWhere('id', $id);
         return $tipo ? $tipo->descripcion : "TIPO#{$id}";
     }
+
+    // ─── PRODUCTOS VENDIDOS ───────────────────────────────────────────────────
+
+    /**
+     * Arma el resumen por categoría, la conciliación contra el TOTAL de VENTAS
+     * CONTADO y el detalle pivotado categoría -> modelo -> color x talla.
+     *
+     * Recibe las filas planas de CajaMovimientoRepository::getDetalleProductosCaja()
+     * y no vuelve a tocar la base: el pivote y los subtotales se hacen en PHP.
+     *
+     * @param  array<int, mixed>   $filas        filas planas (categoria, modelo, color, talla, pares, monto)
+     * @param  array<string,mixed> $conciliacion salida de getConciliacionCaja()
+     * @return array<string, mixed>
+     */
+    public function seccionProductos(array $filas, array $conciliacion): array
+    {
+        $categorias = array();   // categoria => ['pares','monto']
+        $grupos     = array();   // categoria => ['tallas'=>[], 'filas'=>[], subtotales]
+        $tallasTodas = array();
+        $totalPorTalla = array();
+        $totalPares = 0.0;
+        $totalMonto = 0.0;
+
+        foreach ($filas as $f) {
+            $cat    = $f->categoria;
+            $modelo = $f->modelo;
+            $color  = $f->color;
+            $talla  = $f->talla;
+            $pares  = floatval($f->pares);
+            $monto  = floatval($f->monto);
+
+            if (!isset($categorias[$cat])) {
+                $categorias[$cat] = array('categoria' => $cat, 'pares' => 0.0, 'monto' => 0.0);
+            }
+            $categorias[$cat]['pares'] += $pares;
+            $categorias[$cat]['monto'] += $monto;
+
+            if (!isset($grupos[$cat])) {
+                $grupos[$cat] = array(
+                    'categoria'      => $cat,
+                    'tallas'         => array(),
+                    'porTalla'       => array(),
+                    'filas'          => array(),
+                    'subtotalPares'  => 0.0,
+                    'subtotalMonto'  => 0.0,
+                );
+            }
+            $grupos[$cat]['tallas'][$talla] = true;
+            $grupos[$cat]['subtotalPares'] += $pares;
+            $grupos[$cat]['subtotalMonto'] += $monto;
+
+            $subTalla = isset($grupos[$cat]['porTalla'][$talla]) ? $grupos[$cat]['porTalla'][$talla] : 0.0;
+            $grupos[$cat]['porTalla'][$talla] = $subTalla + $pares;
+
+            $totTalla = isset($totalPorTalla[$talla]) ? $totalPorTalla[$talla] : 0.0;
+            $totalPorTalla[$talla] = $totTalla + $pares;
+
+            $clave = $modelo . '||' . $color;
+            if (!isset($grupos[$cat]['filas'][$clave])) {
+                $grupos[$cat]['filas'][$clave] = array(
+                    'modelo'   => $modelo,
+                    'color'    => $color,
+                    'porTalla' => array(),
+                    'pares'    => 0.0,
+                    'monto'    => 0.0,
+                );
+            }
+            $actual = isset($grupos[$cat]['filas'][$clave]['porTalla'][$talla])
+                ? $grupos[$cat]['filas'][$clave]['porTalla'][$talla] : 0.0;
+            $grupos[$cat]['filas'][$clave]['porTalla'][$talla] = $actual + $pares;
+            $grupos[$cat]['filas'][$clave]['pares'] += $pares;
+            $grupos[$cat]['filas'][$clave]['monto'] += $monto;
+
+            $tallasTodas[$talla] = true;
+            $totalPares += $pares;
+            $totalMonto += $monto;
+        }
+
+        // Resumen por categoría, ordenado por pares descendente.
+        $resumen = array_values($categorias);
+        usort($resumen, function ($a, $b) {
+            if ($a['pares'] == $b['pares']) {
+                return strcmp($a['categoria'], $b['categoria']);
+            }
+            return ($a['pares'] < $b['pares']) ? 1 : -1;
+        });
+
+        // Ordena las tallas de cada grupo y reindexa sus filas.
+        foreach ($grupos as $cat => $g) {
+            $grupos[$cat]['tallas'] = $this->ordenarTallas(array_keys($g['tallas']));
+            $filasOrdenadas = array_values($g['filas']);
+            usort($filasOrdenadas, function ($a, $b) {
+                $c = strcmp($a['modelo'], $b['modelo']);
+                return $c !== 0 ? $c : strcmp($a['color'], $b['color']);
+            });
+            $grupos[$cat]['filas'] = $filasOrdenadas;
+        }
+
+        // Los grupos salen en el mismo orden que el resumen (por pares desc).
+        $gruposOrdenados = array();
+        foreach ($resumen as $r) {
+            if (isset($grupos[$r['categoria']])) {
+                $gruposOrdenados[] = $grupos[$r['categoria']];
+            }
+        }
+
+        // ── Conciliación ──
+        $productos = $totalMonto;
+        $envio     = isset($conciliacion['envio']) ? floatval($conciliacion['envio']) : 0.0;
+        $embalaje  = isset($conciliacion['embalaje']) ? floatval($conciliacion['embalaje']) : 0.0;
+        $sinDet    = isset($conciliacion['montoSinDetalle']) ? floatval($conciliacion['montoSinDetalle']) : 0.0;
+        $docsSinDet = isset($conciliacion['docsSinDetalle']) ? intval($conciliacion['docsSinDetalle']) : 0;
+        $totalCont = isset($conciliacion['totalContado']) ? floatval($conciliacion['totalContado']) : 0.0;
+
+        $calculado  = $productos + $envio + $embalaje + $sinDet;
+        $diferencia = round($totalCont - $calculado, 2);
+
+        return array(
+            'resumen'        => $resumen,
+            'grupos'         => $gruposOrdenados,
+            'tallasGlobales' => $this->ordenarTallas(array_keys($tallasTodas)),
+            'totalPorTalla'  => $totalPorTalla,
+            'totalPares'     => $totalPares,
+            'totalMonto'     => $totalMonto,
+            'conciliacion'   => array(
+                'productos'      => $productos,
+                'envio'          => $envio,
+                'embalaje'       => $embalaje,
+                'montoSinDetalle' => $sinDet,
+                'docsSinDetalle' => $docsSinDet,
+                'calculado'      => $calculado,
+                'totalContado'   => $totalCont,
+                'diferencia'     => $diferencia,
+                // Tolerancia de ±0.05 pedida: por debajo se considera cuadrado.
+                'cuadra'         => abs($diferencia) <= 0.05,
+            ),
+        );
+    }
+
+    /**
+     * Ordena tallas: primero las numéricas de menor a mayor, después las no
+     * numéricas alfabéticamente (S, M, L, XL, T12, S/T...).
+     *
+     * @param  array<int, string> $tallas
+     * @return array<int, string>
+     */
+    private function ordenarTallas(array $tallas): array
+    {
+        $numericas    = array();
+        $noNumericas  = array();
+
+        foreach ($tallas as $t) {
+            if (is_numeric($t)) {
+                $numericas[] = $t;
+            } else {
+                $noNumericas[] = $t;
+            }
+        }
+
+        usort($numericas, function ($a, $b) {
+            $fa = floatval($a);
+            $fb = floatval($b);
+            if ($fa == $fb) { return 0; }
+            return ($fa < $fb) ? -1 : 1;
+        });
+        sort($noNumericas, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return array_merge($numericas, $noNumericas);
+    }
 }
