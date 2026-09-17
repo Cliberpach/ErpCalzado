@@ -58,26 +58,27 @@
 
                                     <div class="form-group row">
                                         <div class="col-md-6">
-                                            <label class="required">Contraseña</label>
+                                            <label>Contraseña</label>
                                             <div class="input-group">
                                                 <input type="password" id="password" name="password"
                                                     class="form-control text-uppercase"
-                                                    value="{{ $user->contra }}">
+                                                    autocomplete="new-password">
                                                 <span class="input-group-append">
                                                     <button type="button" id="btn_toggle_pass" class="btn btn-default">
                                                         <i id="pass" class="fa fa-eye"></i>
                                                     </button>
                                                 </span>
                                             </div>
+                                            <small class="text-muted">Dejar vacío para no cambiar la contraseña.</small>
                                             <span class="text-danger small password_msgError msgError"></span>
                                         </div>
 
                                         <div class="col-md-6 mb-3">
-                                            <label class="required">Confirmar contraseña</label>
+                                            <label>Confirmar contraseña</label>
                                             <div class="input-group">
                                                 <input type="password" id="confirm_password" name="confirm_password"
                                                     class="form-control text-uppercase"
-                                                    value="{{ $user->contra }}">
+                                                    autocomplete="new-password">
                                                 <span class="input-group-append">
                                                     <button type="button" id="btn_toggle_confirm" class="btn btn-default">
                                                         <i id="passcon" class="fa fa-eye"></i>

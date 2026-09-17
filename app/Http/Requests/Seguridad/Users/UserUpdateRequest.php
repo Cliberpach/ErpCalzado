@@ -40,8 +40,11 @@ class UserUpdateRequest extends FormRequest
                     $query->whereIn('estado', ['ACTIVO', 'ANULADO']);
                 })->ignore($id),
             ],
-            'password'         => 'required',
-            'confirm_password' => 'required|same:password',
+            // Opcionales al editar: dejarlas vacías conserva la contraseña
+            // actual. Antes eran obligatorias porque el formulario llegaba
+            // precargado con la contraseña en texto plano.
+            'password'         => 'nullable',
+            'confirm_password' => 'nullable|required_with:password|same:password',
         ];
     }
 
@@ -53,9 +56,8 @@ class UserUpdateRequest extends FormRequest
             'colaborador_id.required'   => 'El campo colaborador es obligatorio.',
             'email.required'            => 'El campo email es obligatorio.',
             'email.unique'              => 'El campo email debe ser único.',
-            'password.required'         => 'El campo contraseña es obligatorio.',
-            'confirm_password.required' => 'Debe confirmar la contraseña.',
-            'confirm_password.same'     => 'Las contraseñas no coinciden.',
+            'confirm_password.required_with' => 'Debe confirmar la contraseña.',
+            'confirm_password.same'          => 'Las contraseñas no coinciden.',
         ];
     }
 

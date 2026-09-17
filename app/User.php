@@ -17,7 +17,6 @@ class User extends Authenticatable
         'email',
         'email_verified_at',
         'password',
-        'contra',
         'remember_token',
         'ruta_imagen',
         'nombre_imagen',

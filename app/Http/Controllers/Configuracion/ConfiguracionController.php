@@ -84,8 +84,8 @@ class ConfiguracionController extends Controller
         
 
         $usuario=User::find($id_user);
-        
-        $usuario->contra=strtoupper($password);
+
+        // Ya no se guarda la contraseña en texto plano (users.contra).
         $usuario->estado=$estado;
         $usuario->update();
         Session::flash('success', 'Se cambio la contraseña maestra');
