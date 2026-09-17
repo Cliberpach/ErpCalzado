@@ -160,6 +160,17 @@ array:3 [
         }
     }
 
+    public function getRankingVendedores(Request $request)
+    {
+        try {
+            $data   =   $this->s_manager->getRankingVendedores($request->toArray());
+
+            return response()->json(['success' => true, 'message' => 'Datos obtenidos', 'data' => $data]);
+        } catch (Throwable $th) {
+            return $this->errorJson($th, 'getRankingVendedores');
+        }
+    }
+
     /**
      * Respuesta de error de los widgets.
      *

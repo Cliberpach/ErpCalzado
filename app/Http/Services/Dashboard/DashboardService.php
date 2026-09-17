@@ -46,6 +46,15 @@ class DashboardService
         return $sales_year;
     }
 
+    public function getRankingVendedores(array $data)
+    {
+        $year   =   $data['year'];
+        $sede   =   $data['sede'];
+        $month  =   isset($data['month']) ? $data['month'] : null;
+
+        return $this->s_repository->rankingVendedores($year, $month, $sede);
+    }
+
     public function origenVentaDisponible(): bool
     {
         return $this->s_repository->origenVentaDisponible();

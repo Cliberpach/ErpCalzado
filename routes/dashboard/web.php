@@ -15,5 +15,6 @@ Route::prefix('dashboard')->middleware('auth')->group(function () {
         Route::get('getSalesColor', [DashboardController::class, 'getSalesColor'])->name('dashboard.getSalesColor');
         Route::get('getSalesSizes', [DashboardController::class, 'getSalesSizes'])->name('dashboard.getSalesSizes');
         Route::get('getDeliveryTime', [DashboardController::class, 'getDeliveryTime'])->name('dashboard.getDeliveryTime');
+        Route::get('getRankingVendedores', [DashboardController::class, 'getRankingVendedores'])->name('dashboard.getRankingVendedores');
     });
 });

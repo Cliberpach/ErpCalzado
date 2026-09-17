@@ -26,6 +26,11 @@ class DashboardManager
         return $this->s_dashboard->getSalesOrigin($data);
     }
 
+    public function getRankingVendedores(array $data)
+    {
+        return $this->s_dashboard->getRankingVendedores($data);
+    }
+
     public function origenVentaDisponible(): bool
     {
         return $this->s_dashboard->origenVentaDisponible();

@@ -2,6 +2,7 @@
 
 namespace App\Http\Services\Dashboard;
 
+use App\Http\Services\Ventas\ReglasVenta;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -99,6 +100,58 @@ class DashboardRepository
             });
 
         return $ventas;
+    }
+
+    /**
+     * Ranking de vendedores por monto, con los pares al lado.
+     *
+     * Las reglas de importe, documento vendible y línea viva son las mismas del
+     * Reporte Cantidades, vía ReglasVenta: si divergen, el sistema acaba con dos
+     * cifras distintas de "cuánto se vendió".
+     *
+     * A diferencia de aquel reporte, aquí NO se filtra por condicion_id: un
+     * ranking de vendedores cuenta contado y crédito. Por eso el widget lleva un
+     * pie que lo advierte, para que nadie lo cuadre contra el arqueo de caja.
+     *
+     * El vendedor es cotizacion_documento.user_id, es decir quien registró la
+     * venta. Las cuentas compartidas de mostrador (DESPACHO CHICLAYO, DESPACHO
+     * TRUJILLO) salen en la lista como una más: es lo que dice el dato.
+     */
+    public function rankingVendedores(string $year, ?string $month, string $sede, int $limite = 8)
+    {
+        $query = DB::table('cotizacion_documento as cd')
+            ->join('cotizacion_documento_detalles as d', 'd.documento_id', '=', 'cd.id')
+            ->leftJoin('users as u', 'u.id', '=', 'cd.user_id')
+            ->selectRaw("
+                cd.user_id,
+                COALESCE(NULLIF(u.usuario, ''), '(SIN USUARIO)') AS vendedor,
+                COUNT(DISTINCT cd.id) AS ventas,
+                SUM(d.cantidad) AS pares,
+                ROUND(SUM(" . ReglasVenta::importeLinea('d') . "), 2) AS monto
+            ")
+            ->whereYear('cd.fecha_documento', $year)
+            ->where('cd.sede_id', $sede)
+            ->whereRaw(ReglasVenta::documentoVendible('cd'))
+            ->whereRaw(ReglasVenta::lineaActiva('d'));
+
+        if ($month) {
+            $query->whereMonth('cd.fecha_documento', $month);
+        }
+
+        return $query
+            ->groupBy('cd.user_id', 'vendedor')
+            ->orderByDesc('monto')
+            ->limit($limite)
+            ->get()
+            ->map(function ($item) {
+                // ventas cuenta DOCUMENTOS distintos, no líneas de detalle: el
+                // join con el detalle multiplica las filas por producto vendido.
+                $item->ventas = (int) $item->ventas;
+                $item->pares  = (float) $item->pares;
+                $item->monto  = (float) $item->monto;
+                return $item;
+            })
+            ->values();
     }
 
     public function topProducts(string $year, ?string $month, string $sede, ?int $color, ?int $talla)
