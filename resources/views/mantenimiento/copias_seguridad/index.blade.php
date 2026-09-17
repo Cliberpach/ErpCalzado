@@ -9,9 +9,11 @@
 @section('hero-subtitle', 'Copias Seguridad')
 
 @section('btn-add')
-    <a class="main-btn-add" href="#" onclick="generarCopia()">
-        <i class="fas fa-plus-circle"></i> Nuevo
-    </a>
+    @can('haveaccess', 'mantenimiento.copias_seguridad.gestionar')
+        <a class="main-btn-add" href="#" onclick="generarCopia()">
+            <i class="fas fa-plus-circle"></i> Nuevo
+        </a>
+    @endcan
 @endsection
 
 @section('content')
@@ -98,7 +100,8 @@
                         const urlDescarga =
                             `{{ route('mantenimiento.copias_seguridad.download', ['id' => ':id']) }}`
                             .replace(':id', row.id);
-                        const esDescargable = row.estado === 'COMPLETADO';
+                        // El servidor ya comprobó que el zip está en disco.
+                        const esDescargable = row.descargable === true;
 
                         return `
                             <div class="dropdown">
@@ -106,6 +109,7 @@
                                     <i class="fas fa-th"></i>
                                 </button>
                                 <div class="dropdown-menu">
+                                    @can('haveaccess', 'mantenimiento.copias_seguridad.gestionar')
                                     ${esDescargable ? `
                                     <a class="dropdown-item" href="${urlDescarga}">
                                         <i class="fas fa-download"></i> Descargar
@@ -113,6 +117,7 @@
                                     <a class="dropdown-item text-danger" href="javascript:void(0);" onclick="eliminarCopia(${row.id}, '${row.nombre ?? ''}')">
                                         <i class="fas fa-trash-alt"></i> Eliminar
                                     </a>
+                                    @endcan
                                 </div>
                             </div>
                         `;

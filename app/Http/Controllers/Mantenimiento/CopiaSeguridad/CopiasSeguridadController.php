@@ -20,13 +20,22 @@ class CopiasSeguridadController extends Controller
         $this->service = new CopiasSeguridadService();
     }
 
+    /** Slug único para las cuatro acciones de esta pantalla. */
+    private const PERMISO = 'mantenimiento.copias_seguridad.gestionar';
+
     public function index()
     {
+        $this->authorize('haveaccess', self::PERMISO);
+
         return view('mantenimiento.copias_seguridad.index');
     }
 
     public function getBackups(Request $request)
     {
+        $this->authorize('haveaccess', self::PERMISO);
+
+        $servicio = $this->service;
+
         $query = CopiaSeguridad::with('user')
             ->select('copias_seguridad.*')
             ->latest();
@@ -41,6 +50,8 @@ class CopiasSeguridadController extends Controller
                 return $row->tamano_bytes . ' B';
             })
             ->addColumn('fecha', fn($row) => $row->created_at->format('d/m/Y H:i:s'))
+            // Sólo se ofrece descargar si el zip sigue realmente en disco.
+            ->addColumn('descargable', fn($row) => $servicio->archivoDisponible($row))
             ->addColumn('estado_badge', function ($row) {
 
                 switch ($row->estado) {
@@ -63,6 +74,8 @@ class CopiasSeguridadController extends Controller
 
     public function generate(Request $request)
     {
+        $this->authorize('haveaccess', self::PERMISO);
+
         try {
             $registro = $this->service->crearRegistro(Auth::id());
             GenerarBackupJob::dispatch($registro->id);
@@ -74,9 +87,11 @@ class CopiasSeguridadController extends Controller
 
     public function download(int $id)
     {
+        $this->authorize('haveaccess', self::PERMISO);
+
         try {
             $path     = $this->service->rutaBackup($id);
-            $filename = basename($path);
+            $filename = $this->service->nombreDescarga(CopiaSeguridad::findOrFail($id));
 
             while (ob_get_level()) {
                 ob_end_clean();
@@ -95,6 +110,8 @@ class CopiasSeguridadController extends Controller
 
     public function destroy(int $id)
     {
+        $this->authorize('haveaccess', self::PERMISO);
+
         try {
             $this->service->eliminarBackup($id);
             return response()->json(['success' => true, 'message' => 'COPIA ELIMINADA']);

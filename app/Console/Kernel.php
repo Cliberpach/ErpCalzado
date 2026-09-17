@@ -33,7 +33,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('facturas:send')->dailyAt('23:10');
         $schedule->command('stock:send')->dailyAt('23:20');
         $schedule->command('resumenes:send')->dailyAt('23:40');
-        $schedule->command('backup:automatico')->dailyAt('03:00');
+        // 03:00 hora de America/Lima (config app.timezone). withoutOverlapping
+        // evita que una noche lenta solape con la siguiente ejecución.
+        $schedule->command('backup:automatico')->dailyAt('03:00')->withoutOverlapping();
     }
 
     /**

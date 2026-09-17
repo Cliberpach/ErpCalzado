@@ -510,7 +510,10 @@
             @can('haveaccess', 'mantenimiento.promociones.index')
                 <li class="@yield('promociones-active')"><a href="{{ route('mantenimiento.promociones.index') }}">Promociones</a></li>
             @endcan
-            @can('haveaccess', 'copia_seguridad.index')
+            {{-- El slug antiguo 'copia_seguridad.index' no existía en la tabla de
+                 permisos, así que el enlace sólo lo veían los roles full-access.
+                 Ahora usa el mismo permiso que exige el controlador. --}}
+            @can('haveaccess', 'mantenimiento.copias_seguridad.gestionar')
                 <li class="@yield('copia_seguridad-active')"><a href="{{ route('mantenimiento.copias_seguridad.index') }}"> Copias de
                         Seguridad</a></li>
             @endcan
