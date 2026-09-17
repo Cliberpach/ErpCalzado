@@ -23,15 +23,10 @@ Route::prefix('ventas')->middleware('auth')->group(function () {
         Route::get('/getCliente/{tipo_documento}/{nro_documento}', 'Ventas\ClienteController@getCliente')->name('ventas.cliente.getCliente');
         Route::get('/excel', 'Ventas\ClienteController@excel')->name('ventas.cliente.excel');
 
-        //Tiendas
-        Route::get('tiendas/index/{id}', 'Ventas\TiendaController@index')->name('clientes.tienda.index');
-        Route::get('tiendas/getShop/{id}', 'Ventas\TiendaController@getShop')->name('clientes.tienda.shop');
-        Route::get('tiendas/create/{id}', 'Ventas\TiendaController@create')->name('clientes.tienda.create');
-        Route::post('tiendas/store/', 'Ventas\TiendaController@store')->name('clientes.tienda.store');
-        Route::put('tiendas/update/{id}', 'Ventas\TiendaController@update')->name('clientes.tienda.update');
-        Route::get('tiendas/destroy/{id}', 'Ventas\TiendaController@destroy')->name('clientes.tienda.destroy');
-        Route::get('tiendas/show/{id}', 'Ventas\TiendaController@show')->name('clientes.tienda.show');
-        Route::get('tiendas/actualizar/{id}', 'Ventas\TiendaController@edit')->name('clientes.tienda.edit');
+        // Las rutas de Tiendas se eliminaron: Ventas\TiendaController no existe
+        // en el repositorio y su sola declaración rompía php artisan route:list.
+        // Ninguna pantalla las usaba: las tres llamadas a route() que quedaban
+        // asignaban variables que nadie leía.
     });
 
     Route::group(["prefix" => "tipo_cliente"], function () {

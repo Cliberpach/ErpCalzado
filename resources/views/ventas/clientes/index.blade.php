@@ -172,8 +172,6 @@
                             ':id', data.id);
                         let url_editar = `{{ route('ventas.cliente.edit', ':id') }}`.replace(
                             ':id', data.id);
-                        let url_tienda = `{{ route('clientes.tienda.index', ':id') }}`.replace(
-                            ':id', data.id);
 
                         return `
                         <div class='btn-group' style='text-transform:capitalize;'>

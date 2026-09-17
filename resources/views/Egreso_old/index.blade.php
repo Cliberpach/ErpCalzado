@@ -129,13 +129,6 @@
                 data: null,
                 className: "text-center",
                 render: function(data) {
-                    //Ruta Detalle
-                    // var url_detalle = '{{ route('clientes.tienda.show', ':id') }}';
-                    // url_detalle = url_detalle.replace(':id',data.id);
-
-                    //Ruta Modificar
-                    var url_edit = '{{ route('clientes.tienda.edit', ':id') }}';
-                    url_edit = url_edit.replace(':id', data.id);
 
 
                     return "<div class='btn-group'>" +

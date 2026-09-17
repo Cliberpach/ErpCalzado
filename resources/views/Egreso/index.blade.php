@@ -145,9 +145,6 @@
                     className: "text-center",
                     render: function(data) {
 
-                        //Ruta Modificar
-                        var url_edit = '{{ route('clientes.tienda.edit', ':id') }}';
-                        url_edit = url_edit.replace(':id', data.id);
 
                         return `
                             <div class="btn-group">
