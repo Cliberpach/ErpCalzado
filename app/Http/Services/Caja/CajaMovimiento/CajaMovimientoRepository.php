@@ -3,6 +3,7 @@
 namespace App\Http\Services\Caja\CajaMovimiento;
 
 use App\DetallesMovimientoCaja;
+use App\Http\Services\Ventas\ReglasVenta;
 use App\Mantenimiento\Colaborador\Colaborador;
 use App\Mantenimiento\Empresa\Empresa;
 use App\Pos\MovimientoCaja;
@@ -123,36 +124,31 @@ class CajaMovimientoRepository
      *   estado <> 'ANULADO'     -> las anuladas no suman (igual que el TOTAL)
      *   cobrar = 'SI'           -> igual que el TOTAL
      *
+     * Las dos reglas que no son propias de la caja (convert_de_id y estado)
+     * viven en ReglasVenta, compartidas con el resto de informes de ventas. Lo
+     * que sí es propio de este reporte —la caja, el contado y el cobrar— se
+     * queda aquí.
+     *
      * Usa los alias dmv (detalle_movimiento_venta) y cd (cotizacion_documento).
      * El único parámetro que espera es el id del movimiento de caja.
      */
     private function filtroVentasContado(): string
     {
-        return " dmv.mcaja_id         = ?
-                 AND cd.condicion_id   = 1
-                 AND cd.convert_de_id IS NULL
-                 AND cd.estado        <> 'ANULADO'
-                 AND dmv.cobrar        = 'SI' ";
+        return " dmv.mcaja_id = ?
+                 AND cd.condicion_id = 1
+                 AND " . ReglasVenta::documentoVendible('cd') . "
+                 AND dmv.cobrar = 'SI' ";
     }
 
     /**
      * Importe real de una línea de detalle (alias d).
      *
-     * Normalmente es importe_nuevo, que ya trae el descuento aplicado. Hay líneas
-     * antiguas con importe_nuevo = 0 sin ningún descuento registrado: ahí el dato
-     * bueno es importe. Se distingue un caso del otro por el descuento, porque un
-     * 100% de descuento sí deja importe_nuevo = 0 de forma legítima y no debe
-     * recuperarse el importe original.
+     * La regla vive en ReglasVenta::importeLinea(), compartida con el resto de
+     * informes de ventas; aquí sólo se fija el alias que usa este repositorio.
      */
     private function importeLinea(): string
     {
-        return " CASE WHEN IFNULL(d.importe_nuevo, 0)          = 0
-                       AND IFNULL(d.monto_descuento, 0)        = 0
-                       AND IFNULL(d.porcentaje_descuento, 0)   = 0
-                       AND IFNULL(d.precio_unitario_nuevo, 0)  = 0
-                      THEN IFNULL(d.importe, 0)
-                      ELSE IFNULL(d.importe_nuevo, 0)
-                 END ";
+        return ' ' . ReglasVenta::importeLinea('d') . ' ';
     }
 
     /**
@@ -184,8 +180,7 @@ class CajaMovimientoRepository
                 LEFT   JOIN productos  pr  ON pr.id  = d.producto_id
                 LEFT   JOIN categorias cat ON cat.id = pr.categoria_id
                 WHERE " . $this->filtroVentasContado() . "
-                  AND  d.estado    = 'ACTIVO'
-                  AND  d.eliminado = '0'
+                  AND  " . ReglasVenta::lineaActiva('d') . "
                 GROUP  BY categoria, modelo, color, talla";
 
         return DB::select($sql, [$mcajaId]);
@@ -208,8 +203,7 @@ class CajaMovimientoRepository
         $sinDetalle = "NOT EXISTS (
                            SELECT 1 FROM cotizacion_documento_detalles d
                            WHERE d.documento_id = v.id
-                             AND d.estado    = 'ACTIVO'
-                             AND d.eliminado = '0')";
+                             AND " . ReglasVenta::lineaActiva('d') . ")";
 
         $sql = "SELECT ROUND(SUM(v.monto_envio), 2)    AS envio,
                        ROUND(SUM(v.monto_embalaje), 2) AS embalaje,
