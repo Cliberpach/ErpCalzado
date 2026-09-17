@@ -3,9 +3,56 @@
 namespace App\Http\Services\Dashboard;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DashboardRepository
 {
+    /**
+     * Memo por petición de las dos comprobaciones de disponibilidad. El
+     * dashboard pinta cada widget en su propia petición, así que el memo sólo
+     * evita repetir la consulta dentro de una misma; no se cachea entre
+     * peticiones a propósito: el día que el dato exista, el widget se arregla
+     * solo sin tener que limpiar nada.
+     *
+     * @var bool|null
+     */
+    private static $origenVentaDisponible = null;
+
+    /** @var bool|null */
+    private static $tiempoEntregaDisponible = null;
+
+    /**
+     * cotizacion_documento.origen_venta_id y _nombre SÍ existen aquí, pero
+     * nadie las escribe: 0 de 29.264 documentos tienen origen. Por eso no vale
+     * Schema::hasColumn (daría un falso positivo) y hay que mirar el dato.
+     */
+    public function origenVentaDisponible(): bool
+    {
+        if (self::$origenVentaDisponible === null) {
+            self::$origenVentaDisponible = DB::table('cotizacion_documento')
+                ->whereNotNull('origen_venta_id')
+                ->where('origen_venta_id', '<>', 0)
+                ->exists();
+        }
+
+        return self::$origenVentaDisponible;
+    }
+
+    /**
+     * paquetes_embalados_detalle y repartos_detalle no existen en la base, así
+     * que el widget de Tiempos de Entrega nunca llegó a funcionar. Aquí la
+     * señal correcta sí es la existencia de las tablas.
+     */
+    public function tiempoEntregaDisponible(): bool
+    {
+        if (self::$tiempoEntregaDisponible === null) {
+            self::$tiempoEntregaDisponible = Schema::hasTable('paquetes_embalados_detalle')
+                && Schema::hasTable('repartos_detalle');
+        }
+
+        return self::$tiempoEntregaDisponible;
+    }
+
     public function salesYear(string $year, string $sede)
     {
         $ventas = DB::table('cotizacion_documento as cd')
@@ -23,6 +70,10 @@ class DashboardRepository
 
     public function salesOrigin(string $year, string $month, string $sede, string $tipo)
     {
+        if (!$this->origenVentaDisponible()) {
+            return collect();
+        }
+
         $query = DB::table('cotizacion_documento as cd')
             ->selectRaw('
             cd.origen_venta_id,
@@ -415,6 +466,10 @@ class DashboardRepository
 
     public function getDeliveryTime(string $year, ?string $month, string $sede)
     {
+        if (!$this->tiempoEntregaDisponible()) {
+            return ['promedio' => 0.0];
+        }
+
         $query = DB::table('envios_ventas as ev')
             ->join('paquetes_embalados_detalle as ped', 'ped.envio_venta_id', '=', 'ev.id')
             ->join('repartos_detalle as rd', 'rd.paquete_embalado_id', '=', 'ped.paquete_embalado_id')

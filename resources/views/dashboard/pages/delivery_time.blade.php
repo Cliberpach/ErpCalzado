@@ -5,6 +5,15 @@
     </div>
 
     <div id="chart_delivery_gauge"></div>
+
+    {{-- Se muestra cuando el servidor responde disponible=false: sin las tablas
+         de embalaje y reparto no hay tiempo de entrega que medir. --}}
+    <div id="delivery-aviso" class="text-center text-muted p-4" style="display:none;">
+        <i class="fa fa-info-circle fa-2x mb-2"></i>
+        <p class="mb-1"><strong>Tiempos de Entrega no disponible</strong></p>
+        <p class="small mb-0">Este informe necesita el registro de embalaje y reparto,
+            que todavía no existe en el sistema. Se activará cuando empiece a usarse.</p>
+    </div>
 </div>
 
 <style>
@@ -33,7 +42,14 @@
                     sede: document.querySelector('#filter_sede').value
                 }));
 
-                if (res.data.success) {
+                if (res.data.success && res.data.disponible === false) {
+                    // No existe el dato: aviso en vez de un medidor a cero, que se
+                    // leería como "entregamos en 0 días".
+                    document.getElementById('chart_delivery_gauge').style.display = 'none';
+                    document.getElementById('delivery-aviso').style.display = 'block';
+                } else if (res.data.success) {
+                    document.getElementById('chart_delivery_gauge').style.display = '';
+                    document.getElementById('delivery-aviso').style.display = 'none';
                     loadDeliveryGauge(res.data.data);
                 }
 

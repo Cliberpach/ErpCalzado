@@ -62,7 +62,15 @@ array:3 [
         try {
             $data   =   $this->s_manager->getSalesOrigin($request->toArray());
 
-            return response()->json(['success' => true, 'message' => 'Datos obtenidos', 'data' => $data]);
+            // disponible = false cuando el origen de venta no se registra: el
+            // widget avisa en vez de pintar una tarta vacía, que se leería como
+            // "no hubo ventas".
+            return response()->json([
+                'success'    => true,
+                'message'    => 'Datos obtenidos',
+                'data'       => $data,
+                'disponible' => $this->s_manager->origenVentaDisponible(),
+            ]);
         } catch (Throwable $th) {
             return $this->errorJson($th, 'getSalesOrigin');
         }
@@ -139,7 +147,14 @@ array:3 [
         try {
             $data   =   $this->s_manager->getDeliveryTime($request->toArray());
 
-            return response()->json(['success' => true, 'message' => 'Datos obtenidos', 'data' => $data]);
+            // disponible = false mientras no existan paquetes_embalados_detalle
+            // y repartos_detalle: sin ellas no hay tiempo de entrega que medir.
+            return response()->json([
+                'success'    => true,
+                'message'    => 'Datos obtenidos',
+                'data'       => $data,
+                'disponible' => $this->s_manager->tiempoEntregaDisponible(),
+            ]);
         } catch (Throwable $th) {
             return $this->errorJson($th, 'getDeliveryTime');
         }

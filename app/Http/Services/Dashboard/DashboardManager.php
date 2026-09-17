@@ -26,6 +26,16 @@ class DashboardManager
         return $this->s_dashboard->getSalesOrigin($data);
     }
 
+    public function origenVentaDisponible(): bool
+    {
+        return $this->s_dashboard->origenVentaDisponible();
+    }
+
+    public function tiempoEntregaDisponible(): bool
+    {
+        return $this->s_dashboard->tiempoEntregaDisponible();
+    }
+
     public function getDataTopProducts(array $data)
     {
         return $this->s_dashboard->getDataTopProducts($data);

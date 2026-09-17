@@ -46,6 +46,16 @@ class DashboardService
         return $sales_year;
     }
 
+    public function origenVentaDisponible(): bool
+    {
+        return $this->s_repository->origenVentaDisponible();
+    }
+
+    public function tiempoEntregaDisponible(): bool
+    {
+        return $this->s_repository->tiempoEntregaDisponible();
+    }
+
     public function getDataTopProducts(array $data)
     {
         $year   =   $data['year'];
