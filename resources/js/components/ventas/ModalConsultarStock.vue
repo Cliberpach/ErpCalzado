@@ -14,6 +14,38 @@
     font-size: 12px;
     vertical-align: middle;
 }
+
+/* Buscador destacado: antes era el campo pequeno de DataTables, arriba a la
+   derecha, y pasaba desapercibido. Amarillo suave para que se vea de
+   entrada sin cansar la vista en una jornada entera. */
+.buscador-stock .form-control {
+    background-color: #fff9db;
+    border-color: #e6c84f;
+    font-size: 18px;
+    height: 52px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.buscador-stock .form-control::placeholder {
+    color: #a08b3a;
+    font-weight: 400;
+    text-transform: none;
+}
+.buscador-stock .form-control:focus {
+    background-color: #fffdf0;
+    border-color: #d4a017;
+    box-shadow: 0 0 0 0.2rem rgba(212, 160, 23, 0.25);
+}
+.buscador-stock .input-group-text {
+    background-color: #f6e58d;
+    border-color: #e6c84f;
+    color: #7d6608;
+    font-size: 18px;
+}
+.buscador-stock .btn-outline-secondary {
+    border-color: #e6c84f;
+    color: #7d6608;
+}
 </style>
 
 <template>
@@ -101,6 +133,32 @@
                             </div>
                         </div>
 
+                        <!-- Buscador destacado: es lo primero que debe ver el vendedor -->
+                        <div class="row justify-content-center mb-3">
+                            <div class="col-12 col-md-10 col-lg-8">
+                                <div class="input-group input-group-lg buscador-stock">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-search"></i>
+                                        </span>
+                                    </div>
+                                    <input
+                                        ref="inputBusqueda"
+                                        v-model="busqueda"
+                                        @input="buscar"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Buscar producto, color, talla, marca o categoría">
+                                    <div class="input-group-append" v-if="busqueda">
+                                        <button type="button" class="btn btn-outline-secondary"
+                                            title="Limpiar búsqueda" @click="limpiarBusqueda">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Leyenda -->
                         <div class="mb-2 d-flex align-items-center" style="gap:16px; font-size:12px;">
                             <span>
@@ -159,6 +217,7 @@ export default {
                 categoria_id: null,
                 almacen_id:   null,
             },
+            busqueda:       '',
             lst_tallas:     [],
             lst_colores:    [],
             lst_marcas:     [],
@@ -172,11 +231,16 @@ export default {
             this.cargarAlmacenes();
             this.cargarCatalogos();
 
+            // Con jQuery: Bootstrap 4 dispara shown.bs.modal por jQuery y un
+            // addEventListener nativo no lo recibe.
             const vm = this;
-            document.getElementById('modal_consultar_stock')
-                .addEventListener('shown.bs.modal', function () {
-                    if (vm.tabla) vm.tabla.columns.adjust();
-                });
+            $('#modal_consultar_stock').on('shown.bs.modal', function () {
+                if (vm.tabla) vm.tabla.columns.adjust();
+                // Foco en el buscador: se puede escribir sin hacer clic.
+                if (vm.$refs.inputBusqueda) {
+                    vm.$refs.inputBusqueda.focus();
+                }
+            });
         });
     },
     methods: {
@@ -185,6 +249,8 @@ export default {
             this.tabla = $('#tbl_stock_disponible').DataTable({
                 processing: true,
                 serverSide: true,
+                // Sin la 'f': el buscador nativo se sustituye por el destacado de arriba.
+                dom: 'lrtip',
                 responsive: true,
                 pageLength: 50,
                 ajax: {
@@ -265,6 +331,22 @@ export default {
                 this.lst_almacenes = res.data;
             } catch (e) {
                 // silent
+            }
+        },
+
+        // Misma busqueda que hacia el campo nativo de DataTables: se delega en
+        // tabla.search(), sin tocar columnas ni filtros.
+        buscar() {
+            if (this.tabla) {
+                this.tabla.search(this.busqueda).draw();
+            }
+        },
+
+        limpiarBusqueda() {
+            this.busqueda = '';
+            this.buscar();
+            if (this.$refs.inputBusqueda) {
+                this.$refs.inputBusqueda.focus();
             }
         },
 
