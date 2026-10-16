@@ -1286,11 +1286,18 @@ class NotaController extends Controller
             ->setAddress((new Address())
             ->setDireccion($nota->direccion_cliente));
 
+            //====== TIPO DE DOCUMENTO DE LA NOTA: 07 CREDITO / 08 DEBITO ======
+            //====== SALE DEL DATO: UNA NOTA DE DEBITO NO PUEDE DECLARARSE COMO CREDITO ======
+            if (!in_array($nota->tipoDoc, ['07', '08'], true)) {
+                throw new Exception("TIPO DE DOCUMENTO INVÁLIDO EN LA NOTA ".$nota->serie."-".$nota->correlativo
+                    .": SE ESPERABA 07 (CRÉDITO) U 08 (DÉBITO) Y SE ENCONTRÓ '".$nota->tipoDoc."'");
+            }
+
             //======== CONSTRUYENDO CABEZERA =====
             $note = new Note();
             $note
                 ->setUblVersion('2.1')
-                ->setTipoDoc('07') // Tipo Doc: Nota de Credito
+                ->setTipoDoc($nota->tipoDoc) // Tipo Doc: 07-NOTA DE CRÉDITO 08-NOTA DE DÉBITO
                 ->setSerie($nota->serie) // Serie NCR
                 ->setCorrelativo($nota->correlativo) // Correlativo NCR
                 ->setFechaEmision(new DateTime($nota->created_at))
