@@ -989,6 +989,20 @@ array:1 [
 
             }
 
+            //====== RESPUESTA DEFINITIVA: SE BORRA LO QUE YA NO APLICA ======
+            //====== Los campos de error los escribe esta misma consulta cuando
+            //====== SUNAT contesta 98 o falla la red, y nadie los limpiaba. Al
+            //====== llegar una respuesta definitiva quedaban los dos mensajes a
+            //====== la vez y el listado pintaba "ACEPTADO" y en rojo "0098 EL
+            //====== PROCESAMIENTO AUN NO HA TERMINADO". response_error es del
+            //====== envio: si hay CDR, el envio funciono.
+            if($code_estado == 0 || $code_estado == 99){
+                $resumen->status_result_error_code      =   null;
+                $resumen->status_result_error_message   =   null;
+                $resumen->response_error                =   null;
+                $resumen->regularize                    =   0;
+            }
+
             $resumen->update();
 
             //======= ARCHIVO YA PRESENTADO ANTERIORMENTE ========
