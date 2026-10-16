@@ -84,6 +84,19 @@
 
             <div class="ibox ">
                 <div class="ibox-content">
+                    @if($puede_todas_sedes)
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="filtro_sede">Sede</label>
+                            <select id="filtro_sede" class="form-control">
+                                <option value="">TODAS LAS SEDES</option>
+                                @foreach($sedes as $sede)
+                                    <option value="{{ $sede->id }}">{{ $sede->nombre }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    @endif
                     <div class="table-responsive">
 
                         <table class="table dataTables-gui table-striped table-bordered table-hover"
@@ -95,6 +108,7 @@
                                     <th class="text-center">FEC.EMISIÓN</th>
                                     <th class="text-center">FEC. REFERENCIA</th>
                                     <th class="text-center">IDENTIFICADOR</th>
+                                    <th class="text-center">SEDE</th>
 
                                     <th class="text-center">ESTADO</th>
                                     <th class="text-center">TICKET</th>
@@ -137,6 +151,13 @@
 
     let fecha_comprobantes              =   null;
     let listComprobantes                =   [];
+
+    //====== LA SEDE CON LA QUE SE OPERA. SIN EL PERMISO EL <select> VA deshabilitado
+    //====== Y SIEMPRE DEVUELVE LA PROPIA; EL SERVIDOR LO VUELVE A COMPROBAR. ======
+    function sedeSeleccionada(){
+        const combo = document.querySelector('#sede_resumen');
+        return (combo && combo.value) ? combo.value : @json($sede_id);
+    }
 
     document.addEventListener('DOMContentLoaded',()=>{
         events();
@@ -221,7 +242,25 @@
             }
         })
 
+        //====== EL FILTRO DE SEDE RECARGA EL LISTADO ======
+        const filtroSede = document.querySelector('#filtro_sede');
+        if(filtroSede){
+            filtroSede.addEventListener('change', () => {
+                if(tableResumenes){ tableResumenes.ajax.reload(); }
+            });
+        }
+
         //====== OBTENER COMPROBANTES BOLETAS ======
+        //====== CAMBIAR DE SEDE INVALIDA LO YA BUSCADO: SON OTRAS SERIES ======
+        const comboSede = document.querySelector('#sede_resumen');
+        if(comboSede){
+            comboSede.addEventListener('change', async () => {
+                listComprobantes = [];
+                clearTableComprobantes();
+                await isActive();
+            });
+        }
+
         btnGetComprobantes.addEventListener('click',()=>{
             //===== OBTENIENDO FECHA DEL INPUT DATE =====
             const fechaComprobantes  =   document.querySelector('#fecha_comprobante').value;
@@ -322,7 +361,11 @@
             serverSide: true,
             ajax: {
                 url: getResumenesUrl,
-                type: 'GET'
+                type: 'GET',
+                data: function(d){
+                    const filtro = document.querySelector('#filtro_sede');
+                    if(filtro && filtro.value){ d.sede_id = filtro.value; }
+                }
             },
             columns: [
                 { data: 'id'},
@@ -334,6 +377,7 @@
                         return data.serie + '-' + data.correlativo;
                     }
                 },
+                { data: 'sede_nombre', defaultContent: '-' },
                 {
                     data: null,
                     render: function(data, type, row) {
@@ -462,7 +506,7 @@
             const res   =   await axios.post(url,{
                                 'comprobantes': JSON.stringify(listComprobantes),
                                 'fecha_comprobantes': fecha_comprobantes,
-                                'sede_id':@json($sede_id)
+                                'sede_id':sedeSeleccionada()
                              });
 
              if(res.data.success){
@@ -506,10 +550,15 @@
     //===== OBTENER COMPROBANTES =====
     async function getComprobantes(fechaComprobantes){
         try {
-            const url       =   route('ventas.resumenes.getComprobantes',{fechaComprobantes,sede_id:@json($sede_id)})
+            const url       =   route('ventas.resumenes.getComprobantes',{fechaComprobantes,sede_id:sedeSeleccionada()})
             const response  =   await axios.get(url);
-            console.log(response);
             listComprobantes    =   response.data.success;
+
+            //====== LA SEDE SIN SERIE DE BOLETA LLEGA CON message Y LA LISTA VACÍA ======
+            if(response.data.message){
+                toastr.error(response.data.message,'SERIE NO CONFIGURADA');
+            }
+
             pintarTableComprobantes();
         } catch (error) {
             console.error('Error al obtener comprobantes: ', error);
@@ -523,7 +572,7 @@
             mostrarAnimacion();
             toastr.clear();
 
-            const url       =   route('ventas.resumenes.getStatus',@json($sede_id));
+            const url       =   route('ventas.resumenes.getStatus',sedeSeleccionada());
             const response  =   await axios.get(url);
 
             const resumenActive =   response.data.resumenActive;

@@ -23,27 +23,122 @@ use Throwable;
 
 class ResumenController extends Controller
 {
+    //====== PERMISOS DE LA PANTALLA ======
+    const PERMISO_RESUMENES   = 'venta.resumenes.index';
+    const PERMISO_TODAS_SEDES = 'venta.resumenes.todas_sedes';
+
+    /**
+     * El envío nocturno (comando resumenes:send) entra sin sesión. Todas las rutas
+     * de la pantalla están detrás del middleware 'auth', así que si no hay usuario
+     * la llamada viene de consola y no hay nada que autorizar.
+     */
+    private function esLlamadaDeConsola()
+    {
+        return !Auth::check();
+    }
+
+    private function autorizarResumenes()
+    {
+        if ($this->esLlamadaDeConsola()) {
+            return;
+        }
+
+        $this->authorize('haveaccess', self::PERMISO_RESUMENES);
+    }
+
+    private function puedeTodasLasSedes()
+    {
+        return !$this->esLlamadaDeConsola()
+            && Auth::user()->havePermission(self::PERMISO_TODAS_SEDES);
+    }
+
+    /**
+     * Resuelve con qué sede se trabaja. Sin el permiso de todas las sedes, un
+     * sede_id ajeno en la petición es un 403 y no un silencio: hasta ahora bastaba
+     * cambiar el número de la URL para leer los pendientes de la sede de al lado.
+     */
+    private function sedeAutorizada($sede_id)
+    {
+        if ($this->esLlamadaDeConsola()) {
+            return (int) $sede_id;
+        }
+
+        $propia = (int) Auth::user()->sede_id;
+
+        if ($sede_id === null || $sede_id === '') {
+            return $propia;
+        }
+
+        $pedida = (int) $sede_id;
+
+        if ($pedida !== $propia && !$this->puedeTodasLasSedes()) {
+            abort(403, 'NO TIENE PERMISO PARA OPERAR CON RESÚMENES DE OTRA SEDE');
+        }
+
+        return $pedida;
+    }
+
+    /**
+     * Las sedes que el usuario puede elegir. Sin el permiso, sólo la suya, para que
+     * el combo nunca ofrezca algo que el servidor va a rechazar.
+     */
+    private function sedesDisponibles()
+    {
+        $sedes = DB::table('empresa_sedes')
+            ->select('id', 'nombre')
+            ->where('estado', 'ACTIVO');
+
+        if (!$this->puedeTodasLasSedes()) {
+            $sedes->where('id', Auth::user()->sede_id);
+        }
+
+        return $sedes->orderBy('nombre')->get();
+    }
+
+    /**
+     * Comprueba que un resumen ya grabado pertenece a una sede permitida.
+     */
+    private function autorizarResumenPorId($resumen_id)
+    {
+        if ($this->esLlamadaDeConsola() || !$resumen_id) {
+            return;
+        }
+
+        $resumen = Resumen::find($resumen_id);
+
+        if ($resumen) {
+            $this->sedeAutorizada($resumen->sede_id);
+        }
+    }
+
     public function index(){
 
-        $sede_id    =   Auth::user()->sede_id;
-        return view('ventas.resumenes.index',compact('sede_id'));
+        $this->autorizarResumenes();
+
+        $sede_id            =   Auth::user()->sede_id;
+        $sedes              =   $this->sedesDisponibles();
+        $puede_todas_sedes  =   $this->puedeTodasLasSedes();
+
+        return view('ventas.resumenes.index',compact('sede_id','sedes','puede_todas_sedes'));
     }
 
     public function getResumenes(Request $request){
 
+        $this->autorizarResumenes();
+
         $resumenes  =   DB::table('resumenes as r')
-                        ->select('r.*');
+                        ->leftJoin('empresa_sedes as s', 's.id', '=', 'r.sede_id')
+                        ->select('r.*', 's.nombre as sede_nombre');
 
-           //========= FILTRO POR ROLES ======
-        $roles = DB::table('role_user as rl')
-         ->join('roles as r', 'r.id', '=', 'rl.role_id')
-         ->where('rl.user_id', Auth::user()->id)
-         ->pluck('r.name')
-         ->toArray();
+        //======== SIN EL PERMISO DE TODAS LAS SEDES, SÓLO LA PROPIA =====
+        if(!$this->puedeTodasLasSedes()){
+            $resumenes->where('r.sede_id', Auth::user()->sede_id);
+        }
 
-        //======== MOSTRAR SOLO RESÚMENES DE SU SEDE =====
-        $resumenes->where('r.sede_id', Auth::user()->sede_id);
-
+        //======== FILTRO OPCIONAL DEL COMBO DE SEDE DEL LISTADO =====
+        if($request->filled('sede_id')){
+            $resumenes->where('r.sede_id', $this->sedeAutorizada($request->get('sede_id')));
+        }
 
         return DataTables::of($resumenes)->toJson();
     }
@@ -51,8 +146,10 @@ class ResumenController extends Controller
 
     public function getComprobantes($fechaComprobantes,$sede_id){
 
+        $this->autorizarResumenes();
+        $sede_id    =   $this->sedeAutorizada($sede_id);
 
-        $enf        =   DB::select('SELECT
+        $series     =   DB::select('SELECT
                         enf.*
                         from empresa_numeracion_facturaciones as enf
                         inner join tabladetalles as td on td.id = enf.tipo_comprobante
@@ -61,7 +158,22 @@ class ResumenController extends Controller
                         AND td.parametro = "B"
                         AND td.tabla_id = 21
                         AND enf.estado = "ACTIVO"',
-                        [$sede_id])[0];
+                        [$sede_id]);
+
+        //====== SIN SERIE DE BOLETA NO HAY NADA QUE RESUMIR. SE AVISA EN VEZ DE
+        //====== REVENTAR CON "Undefined offset: 0" AL INDEXAR UN RESULTADO VACÍO.
+        //====== 'success' SIGUE SIENDO EL ARRAY DE COMPROBANTES: EL COMANDO Y EL JS
+        //====== LO RECORREN TAL CUAL, ASÍ QUE AQUÍ VA VACÍO, NO false.
+        if(count($series) === 0){
+            return response()->json([
+                'success' => [],
+                'fecha'   => $fechaComprobantes,
+                'message' => 'LA SEDE NO TIENE UNA SERIE DE BOLETA ELECTRÓNICA ACTIVA. '
+                           . 'CONFIGÚRELA EN MANTENIMIENTO → NUMERACIÓN DE COMPROBANTES.'
+            ]);
+        }
+
+        $enf        =   $series[0];
 
         //======= SELECCIONAMOS LOS COMPROBANTES DE LA FECHA RESPECTIVA ======
         //===== QUE NO SE ENCUENTREN REGISTRADOS EN NINGÚN DETALLE DE RESUMEN ========
@@ -103,6 +215,11 @@ array:3 [
 ]
 */
     public function store(Request $request){
+
+        //====== FUERA DEL try: UN 403 NO PUEDE ACABAR CONVERTIDO EN JSON 200 ======
+        $this->autorizarResumenes();
+        $request->merge(['sede_id' => $this->sedeAutorizada($request->get('sede_id'))]);
+
         try {
 
             //===== INICIAR TRANSACCIÓN =====
@@ -110,7 +227,7 @@ array:3 [
 
             //======= VERIFICANDO SI RESUMENES ESTAN ACTIVOS ======
 
-            $resumenIsActive =    ResumenController::isActive($request->get('sede_id'))->getData();
+            $resumenIsActive =    $this->isActive($request->get('sede_id'))->getData();
 
 
             if(!$resumenIsActive->success){
@@ -203,7 +320,11 @@ array:3 [
 
     }
 
-    public static function isActive($sede_id){
+    public function isActive($sede_id){
+
+        //====== FUERA DEL try: UN 403 NO PUEDE ACABAR CONVERTIDO EN JSON 200 ======
+        $this->autorizarResumenes();
+        $sede_id    =   $this->sedeAutorizada($sede_id);
 
         try {
 
@@ -234,7 +355,9 @@ array:3 [
 
     }
 
-    public function getCorrelativo($sede_id){
+    //====== AYUDANTES INTERNOS: SIN RUTA Y FUERA DEL ALCANCE HTTP, ASÍ QUE LA
+    //====== AUTORIZACIÓN LA HACE SIEMPRE EL MÉTODO PÚBLICO QUE LOS LLAMA.
+    protected function getCorrelativo($sede_id){
 
 
         //===== OBTENIENDO EL ÚLTIMO RESUMEN DE LA SEDE EN LA TABLA RESÚMENES =======
@@ -251,7 +374,7 @@ array:3 [
 
         //===== BUSCAMOS EL REGISTRO DEL COMPROBANTE RESÚMENES =======
         //===== 186 EN PRODUCCION - 190 EN LOCALHOST =====
-        $enf    =    DB::select('select
+        $series =    DB::select('select
                             enf.numero_iniciar,
                             enf.serie
                             from empresa_numeracion_facturaciones as enf
@@ -261,7 +384,16 @@ array:3 [
                             AND td.tabla_id = 21
                             AND enf.estado = "ACTIVO"
                             AND enf.sede_id = ?',
-                            [$sede_id])[0];
+                            [$sede_id]);
+
+        //====== AVISO LEGIBLE EN VEZ DE "Undefined offset: 0": EL catch DE store()
+        //====== DEVUELVE EL MENSAJE AL USUARIO Y DESHACE LA TRANSACCIÓN.
+        if(count($series) === 0){
+            throw new Exception('LA SEDE NO TIENE UNA SERIE DE RESUMEN (R) ACTIVA. '
+                .'CONFIGÚRELA EN MANTENIMIENTO → NUMERACIÓN DE COMPROBANTES ANTES DE CONTINUAR.');
+        }
+
+        $enf    =    $series[0];
 
         return (object)['serie'=>$enf->serie,'correlativo'=>$enf->numero_iniciar];
     }
@@ -282,6 +414,10 @@ Greenter\Model\Response\SummaryResult {#3127 // app\Http\Controllers\Market\Vent
 }
 */
     public function sendSunat(Request $request){
+
+        //====== FUERA DEL try: UN 403 NO PUEDE ACABAR CONVERTIDO EN JSON 200 ======
+        $this->autorizarResumenes();
+        $this->autorizarResumenPorId($request->get('resumen_id'));
 
         try {
 
@@ -426,7 +562,7 @@ Greenter\Model\Response\SummaryResult {#3127 // app\Http\Controllers\Market\Vent
     }
 
 
-    public function controlConfiguracionGreenter($util){
+    protected function controlConfiguracionGreenter($util){
         //==== OBTENIENDO CONFIGURACIÓN DE GREENTER ======
         $greenter_config    =   DB::select('select
                                 gc.ruta_certificado,
@@ -483,6 +619,11 @@ array:1 [
 ]
 */
     public function consultarTicket(Request $request){
+
+        //====== FUERA DEL try: UN 403 NO PUEDE ACABAR CONVERTIDO EN JSON 200 ======
+        $this->autorizarResumenes();
+        $this->autorizarResumenPorId($request->get('resumen_id'));
+
         try {
             DB::beginTransaction();
 
@@ -615,6 +756,10 @@ array:1 [
     }
 
     public function getXml($resumen_id){
+
+        $this->autorizarResumenes();
+        $this->autorizarResumenPorId($resumen_id);
+
         $resumen        =   Resumen::find($resumen_id);
         $nombreArchivo  =   basename($resumen->ruta_xml);
 
@@ -627,6 +772,10 @@ array:1 [
     }
 
     public function getCdr($resumen_id){
+
+        $this->autorizarResumenes();
+        $this->autorizarResumenPorId($resumen_id);
+
         $resumen        =   Resumen::find($resumen_id);
         $nombreArchivo  =   basename($resumen->ruta_cdr);
 
@@ -639,6 +788,11 @@ array:1 [
 
 
     public function getDetallesResumen($resumen_id){
+
+        //====== FUERA DEL try: UN 403 NO PUEDE ACABAR CONVERTIDO EN JSON 200 ======
+        $this->autorizarResumenes();
+        $this->autorizarResumenPorId($resumen_id);
+
         try {
             $resumen_detalle    =   DB::select('select rd.resumen_id, rd.documento_serie,rd.documento_correlativo,
                                     rd.documento_total,rd.documento_igv,rd.documento_subtotal,cd.cliente,

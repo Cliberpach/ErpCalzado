@@ -17,11 +17,21 @@
                 
                 
                 <div class="row">
+                    {{-- La sede manda: de ella salen la serie de boleta que se busca y la
+                         serie R del resumen. Sin el permiso sólo aparece la propia. --}}
+                    <div class="col-4">
+                        <label for="sede_resumen">Sede</label>
+                        <select id="sede_resumen" class="form-control" @if(!$puede_todas_sedes) disabled @endif>
+                            @foreach($sedes as $sede)
+                                <option value="{{ $sede->id }}" @if($sede->id == $sede_id) selected @endif>{{ $sede->nombre }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="col-4">
                         <label for="fecha_comprobante">Fecha de Emisión de comprobantes</label>
                         <input id="fecha_comprobante" type="date" class="form-control" value="<?php echo date('Y-m-d'); ?>">
                     </div>
-                    <div class="col-8 d-flex align-items-end">
+                    <div class="col-4 d-flex align-items-end">
                         <button class="btn btn-primary" id="btn-get-comprobantes">Buscar comprobantes</button>
                     </div>
                 </div>
