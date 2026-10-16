@@ -930,42 +930,50 @@ array:1 [
             }
 
             //===== ENVÍO CON ERRORES Y CDR RECIBIDO =====
+            //===== RECHAZADO POR SUNAT =====
             if($code_estado == 99){
 
-                //===== GUARDANDO CDR ======
-                $util->writeCdr(null, $res_ticket->getCdrZip(),"RESUMEN",$summary_name);
-                //$resumen->ruta_cdr  =   __DIR__.'/../../../Greenter/files/resumenes_cdr/'.$summary_name.'.zip';
-                $resumen->ruta_cdr      =   'storage/greenter/resumenes/cdr/'.$summary_name.'.zip';
-
-
-                //==== GUARDANDO DATOS DEL CDR ====
                 if($res_ticket->getCdrResponse()){
+
+                    //===== GUARDANDO CDR ======
+                    $util->writeCdr(null, $res_ticket->getCdrZip(),"RESUMEN",$summary_name);
+                    $resumen->ruta_cdr                  =   'storage/greenter/resumenes/cdr/'.$summary_name.'.zip';
+
+                    //==== GUARDANDO DATOS DEL CDR ====
                     $resumen->cdr_response_id           =   $res_ticket->getCdrResponse()->getId();
                     $resumen->cdr_response_code         =   $res_ticket->getCdrResponse()->getCode();
                     $resumen->cdr_response_description  =   $res_ticket->getCdrResponse()->getDescription();
                     $resumen->cdr_response_notes        =   implode(" | ", $res_ticket->getCdrResponse()->getNotes());
+
+                    //====== ESTE UPDATE ESTABA FUERA DEL if: CON 99 Y SIN CDR LLAMABA
+                    //====== getCode() SOBRE null, LANZABA, Y LA CONSULTA ENTERA SE IBA AL
+                    //====== catch. POR ESO LA RAMA DE ABAJO NUNCA LLEGABA A EJECUTARSE.
+                    DB::table('cotizacion_documento')
+                    ->where('resumen_id',$resumen_id)
+                    ->update([
+                        'cdr_response_code'    =>  $res_ticket->getCdrResponse()->getCode()
+                    ]);
+
+                    $message    =   "ENVÍO CON ERRORES Y CDR RECIBIDO";
+
+                }else{
+
+                    //===== RECHAZADO Y SIN CDR: NO SE ESCRIBE ruta_cdr NI SE LLAMA A
+                    //===== writeCdr, QUE DEJARÍA UN .zip VACÍO APUNTADO DESDE LA BASE.
+                    //===== QUEDA CONSTANCIA DEL RECHAZO EN LA CABECERA Y EN LOS
+                    //===== DOCUMENTOS, QUE ES LO QUE ANTES SE PERDÍA.
+                    $message    =   "ENVÍO CON ERRORES, SIN CDR";
+
+                    $resumen->cdr_response_code         =   'SIN CDR';
+                    $resumen->cdr_response_description  =   'SUNAT RECHAZÓ EL RESUMEN (CÓDIGO 99) '
+                                                            .'Y NO DEVOLVIÓ CDR.';
+
+                    DB::table('cotizacion_documento')
+                    ->where('resumen_id',$resumen_id)
+                    ->update([
+                        'cdr_response_code'    =>  'SIN CDR'
+                    ]);
                 }
-
-                DB::table('cotizacion_documento')
-                ->where('resumen_id',$resumen_id)
-                ->update([
-                    'cdr_response_code'    =>  $res_ticket->getCdrResponse()->getCode()
-                ]);
-
-                $message    =   "ENVÍO CON ERRORES Y CDR RECIBIDO";
-            }
-
-            //===== ENVÍO CON ERRORES Y SIN CDR =====
-            if($code_estado == 99 && !$cdr){
-
-                $message    =   "ENVÍO CON ERRORES,SIN CDR";
-
-                DB::table('cotizacion_documento')
-                ->where('resumen_id',$resumen_id)
-                ->update([
-                    'cdr_response_code'    =>  'SIN CDR'
-                ]);
-
             }
 
             //======= EN PROCESO =======

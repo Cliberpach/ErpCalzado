@@ -33,6 +33,12 @@ class Kernel extends ConsoleKernel
         $schedule->command('facturas:send')->dailyAt('23:10');
         $schedule->command('stock:send')->dailyAt('23:20');
         $schedule->command('resumenes:send')->dailyAt('23:40');
+        // Consulta en SUNAT los tickets que quedaron sin respuesta. Va 30 min
+        // despues del envio a proposito: resumenes:send consulta el ticket
+        // segundos despues de enviar, que es justo cuando SUNAT responde 98
+        // (en proceso), y con 98 no se reintenta nada. Media hora le da margen.
+        // Comentada hasta decidir encenderla, despues de la pasada historica.
+        // $schedule->command('resumenes:consultar')->dailyAt('00:10')->withoutOverlapping();
         // 03:00 hora de America/Lima (config app.timezone). withoutOverlapping
         // evita que una noche lenta solape con la siguiente ejecución.
         $schedule->command('backup:automatico')->dailyAt('03:00')->withoutOverlapping();
