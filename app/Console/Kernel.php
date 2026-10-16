@@ -37,8 +37,9 @@ class Kernel extends ConsoleKernel
         // despues del envio a proposito: resumenes:send consulta el ticket
         // segundos despues de enviar, que es justo cuando SUNAT responde 98
         // (en proceso), y con 98 no se reintenta nada. Media hora le da margen.
-        // Comentada hasta decidir encenderla, despues de la pasada historica.
-        // $schedule->command('resumenes:consultar')->dailyAt('00:10')->withoutOverlapping();
+        // Encendida tras la pasada historica del 16/10/2026: 6 resumenes
+        // consultados, los 6 aceptados, sin rechazos ni fallos.
+        $schedule->command('resumenes:consultar')->dailyAt('00:10')->withoutOverlapping();
         // 03:00 hora de America/Lima (config app.timezone). withoutOverlapping
         // evita que una noche lenta solape con la siguiente ejecución.
         $schedule->command('backup:automatico')->dailyAt('03:00')->withoutOverlapping();
