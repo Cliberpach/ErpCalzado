@@ -112,6 +112,7 @@
 
                                     <th class="text-center">ESTADO</th>
                                     <th class="text-center">TICKET</th>
+                                    <th class="text-center">RESPUESTA SUNAT</th>
                                     <th class="text-center">DESCARGAS</th>
                                     <th class="text-center">ACCIONES</th>
 
@@ -146,11 +147,10 @@
 
 <script>
     const btnGetComprobantes            =   document.querySelector('#btn-get-comprobantes');
-    const bodyTableSearchComprobantes   =   document.querySelector('.table-search-comprobantes tbody');
+    const contenedorGrupos              =   document.querySelector('#grupos_pendientes');
     let tableResumenes  = null;
 
-    let fecha_comprobantes              =   null;
-    let listComprobantes                =   [];
+    let gruposPendientes                =   [];
 
     //====== LA SEDE CON LA QUE SE OPERA. SIN EL PERMISO EL <select> VA deshabilitado
     //====== Y SIEMPRE DEVUELVE LA PROPIA; EL SERVIDOR LO VUELVE A COMPROBAR. ======
@@ -181,6 +181,10 @@
             if(e.target.classList.contains('btn-detalle-resumen')){
                 const resumen_id    =   e.target.getAttribute('data-resumen-id');
                 verDetalleResumen(resumen_id);
+            }
+            if(e.target.classList.contains('btn-eliminar-resumen')){
+                const resumen_id    =   e.target.getAttribute('data-resumen-id');
+                confirmarEliminarResumen(resumen_id);
             }
         })
 
@@ -237,8 +241,9 @@
         document.addEventListener('click',(e)=>{
             if(e.target.classList.contains('btn-delete-document')){
                 const documento_id  =   e.target.getAttribute('data-documento-id');
-                eliminarComprobante(documento_id);
-                pintarTableComprobantes();
+                const indice        =   parseInt(e.target.getAttribute('data-indice'),10);
+                eliminarComprobante(indice, documento_id);
+                pintarGrupos();
             }
         })
 
@@ -255,23 +260,21 @@
         const comboSede = document.querySelector('#sede_resumen');
         if(comboSede){
             comboSede.addEventListener('change', async () => {
-                listComprobantes = [];
-                clearTableComprobantes();
+                gruposPendientes = [];
+                pintarGrupos();
                 await isActive();
             });
         }
 
-        btnGetComprobantes.addEventListener('click',()=>{
-            //===== OBTENIENDO FECHA DEL INPUT DATE =====
-            const fechaComprobantes  =   document.querySelector('#fecha_comprobante').value;
-            fecha_comprobantes       =   fechaComprobantes;
+        btnGetComprobantes.addEventListener('click', buscarPendientes);
 
-            if(fechaComprobantes){
-                getComprobantes(fechaComprobantes);
-            }else{
-                toastr.error('DEBE SELECCIONAR UNA FECHA');
+        //====== MARCAR O DESMARCAR UNA FECHA ENTERA ======
+        document.addEventListener('change',(e)=>{
+            if(e.target.classList.contains('chk-grupo')){
+                const i = parseInt(e.target.getAttribute('data-indice'),10);
+                if(gruposPendientes[i]){ gruposPendientes[i].seleccionado = e.target.checked; }
+                pintarGrupos();
             }
-
         })
     }
 
@@ -382,6 +385,11 @@
                     data: null,
                     render: function(data, type, row) {
 
+                        //======= ANULADO EN LA PANTALLA: MANDA SOBRE TODO LO DEMÁS ======
+                        if(data.estado == 'ANULADO'){
+                            return `<span class="badge badge-dark">ELIMINADO</span>`;
+                        }
+
                         //======= ENVIADO A SUNAT ======
                         if(data.send_sunat == 1){
                             //===== ACEPTADO POR SUNAT =====
@@ -420,6 +428,32 @@
                 },
                 { data: 'ticket', title: 'ticket' },
                 {
+                    //====== LO QUE CONTESTÓ SUNAT, TAL CUAL, SIN INTERPRETARLO ======
+                    data: null,
+                    render: function(data, type, row) {
+                        const partes = [];
+
+                        if(data.cdr_response_code){
+                            partes.push('<b>' + data.cdr_response_code + '</b> ' +
+                                (data.cdr_response_description || ''));
+                        }
+                        if(data.status_result_error_code || data.status_result_error_message){
+                            partes.push('<span class="text-danger">' +
+                                (data.status_result_error_code || '') + ' ' +
+                                (data.status_result_error_message || '') + '</span>');
+                        }
+                        if(data.response_error){
+                            partes.push('<span class="text-danger">' + data.response_error + '</span>');
+                        }
+                        if(data.estado == 'ANULADO'){
+                            partes.push('ELIMINADO POR ' + (data.anulado_por_nombre || '-') +
+                                ' EL ' + (data.anulado_at || '-'));
+                        }
+
+                        return partes.length ? partes.join('<br>') : '-';
+                    }
+                },
+                {
                     data: null,
                     render: function(data, type, row) {
                         var html = `<td style="white-space: nowrap;"><div style="display: flex; justify-content: center;">`;
@@ -453,6 +487,12 @@
                     render: function(data, type, row) {
                         var html = '<td><div class="btn-group">';
 
+                            //====== UN RESUMEN YA ELIMINADO NO ADMITE NADA MÁS ======
+                            if (data.estado == 'ANULADO') {
+                                html += `<i class="fas fa-eye btn btn-success d-flex align-items-center btn-detalle-resumen" data-resumen-id="${data.id}"></i>`;
+                                return html + '</div></td>';
+                            }
+
                             if (data.send_sunat == 1) {
                                 if (data.code_estado == 98 || (data.ticket && !data.code_estado)) {
                                     html += `<button type="button" data-resumen-id="${data.id}" class="btn btn-primary btn-consultar-resumen">CONSULTAR</button>`;
@@ -464,6 +504,12 @@
                             }
 
                             html += `<i class="fas fa-eye btn btn-success d-flex align-items-center btn-detalle-resumen" data-resumen-id="${data.id}"></i>`;
+
+                            //====== SÓLO SE ELIMINA LO QUE NUNCA LLEGÓ A SUNAT. LO ACEPTADO
+                            //====== YA ESTÁ DECLARADO Y REHACERLO SERÍA DECLARARLO DOS VECES.
+                            if (data.send_sunat == 0) {
+                                html += `<i class="fas fa-trash-alt btn btn-danger d-flex align-items-center btn-eliminar-resumen" data-resumen-id="${data.id}"></i>`;
+                            }
 
                         html += '</div></td>';
 
@@ -497,72 +543,257 @@
     }
 
 
-     //========= GUARDAR RESUMEN Y ENVIAR A SUNAT A LA VEZ ==========
+     //========= UN RESUMEN POR FECHA, UNO DETRAS DE OTRO ==========
+     //========= SECUENCIAL A PROPOSITO: CADA store() TOMA EL CORRELATIVO
+     //========= SIGUIENTE, ASI QUE LANZARLOS EN PARALELO LOS HARIA CHOCAR.
      async function saveSendResumen(){
 
-         try {
+        const url      = '{{route('ventas.resumenes.store')}}';
+        const aEmitir  = gruposAEmitir();
 
-            const url   =   '{{route('ventas.resumenes.store')}}';
-            const res   =   await axios.post(url,{
-                                'comprobantes': JSON.stringify(listComprobantes),
-                                'fecha_comprobantes': fecha_comprobantes,
-                                'sede_id':sedeSeleccionada()
-                             });
+        let enviados   = 0;
+        let grabados   = 0;
+        const fallos   = [];
 
-             if(res.data.success){
-                 tableResumenes.ajax.reload(null, false);
-                 $('#modal_resumenes').modal('hide');
-                 toastr.success(res.data.message,'OPERACIÓN COMPLETADA');
-             }else{
-                 toastr.error(res.data.message,'ERROR EN EL SERVIDOR');
-             }
+        for (const grupo of aEmitir) {
+            try {
+                const res = await axios.post(url,{
+                    'comprobantes': JSON.stringify(grupo.comprobantes),
+                    'fecha_comprobantes': grupo.fecha,
+                    'sede_id': sedeSeleccionada()
+                });
 
-         } catch (error) {
-             toastr.error(error.message, 'ERROR EN LA PETICIÓN GUARDAR Y ENVIAR RESÚMEN', { timeOut: 0 });
+                if(res.data.success && res.data.success_sunat){
+                    enviados++;
+                }else if(res.data.success){
+                    grabados++;
+                    fallos.push(grupo.fecha + ': grabado, pero no enviado (' + (res.data.error || '') + ')');
+                }else{
+                    fallos.push(grupo.fecha + ': ' + res.data.message);
+                }
 
-         }finally{
-            Swal.close();
-            $("#modal_resumenes").modal("hide");
-         }
+            } catch (error) {
+                fallos.push(grupo.fecha + ': ' + error.message);
+            }
+        }
+
+        Swal.close();
+        tableResumenes.ajax.reload(null, false);
+
+        if(fallos.length === 0){
+            $('#modal_resumenes').modal('hide');
+            toastr.success(enviados + ' RESUMEN(ES) REGISTRADOS Y ENVIADOS A SUNAT','OPERACION COMPLETADA');
+            return;
+        }
+
+        //====== SI ALGO FALLO EL MODAL SE QUEDA ABIERTO Y SE DICE QUE PASO CON CADA FECHA ======
+        toastr.error(
+            'ENVIADOS: ' + enviados + ' &middot; GRABADOS SIN ENVIAR: ' + grabados + '<br>' + fallos.join('<br>'),
+            'REVISE EL RESULTADO POR FECHA',
+            {timeOut:0, extendedTimeOut:0, enableHtml:true}
+        );
+
+        await buscarPendientes();
      }
 
+
+    //====== ELIMINAR UN RESUMEN QUE NUNCA LLEGO A SUNAT ======
+    async function confirmarEliminarResumen(resumen_id){
+
+        const confirmacion = await Swal.fire({
+            title: 'Eliminar este resumen?',
+            html: 'Se liberaran sus boletas para volver a resumirlas.<br>' +
+                  'Queda registro de quien lo elimino y cuando.',
+            icon: 'warning',
+            input: 'text',
+            inputLabel: 'Motivo (opcional)',
+            showCancelButton: true,
+            confirmButtonText: 'Si, eliminar',
+            cancelButtonText: 'No, cancelar',
+            reverseButtons: true
+        });
+
+        if(!confirmacion.isConfirmed){ return; }
+
+        try {
+            mostrarAnimacion();
+
+            const url = '{{route('ventas.resumenes.destroy')}}';
+            const res = await axios.post(url,{
+                'resumen_id': resumen_id,
+                'motivo': confirmacion.value || ''
+            });
+
+            if(res.data.success){
+                tableResumenes.ajax.reload(null, false);
+                toastr.success(res.data.message,'OPERACION COMPLETADA');
+            }else{
+                toastr.error(res.data.message,'NO SE PUDO ELIMINAR',{timeOut:0});
+            }
+
+        } catch (error) {
+            toastr.error(error.message,'ERROR EN LA PETICION ELIMINAR RESUMEN');
+        } finally {
+            ocultarAnimacion();
+        }
+    }
 
     //====== PINTAR NUEVO RESUMEN =====
     function addNewResumen(resumen){
         tableResumenes.row.add(resumen).draw();
     }
 
-    //==== ELIMINAR COMPROBANTE DEL CARRITO ======
-    function eliminarComprobante(documento_id){
-        listComprobantes    =   listComprobantes.filter((c)=>{
-            return  c.documento_id != documento_id;
-        })
+    //==== QUITAR UN COMPROBANTE DE SU GRUPO ======
+    //==== EL GRUPO SE QUEDA AUNQUE SE VACÍE, PARA QUE SE VEA QUE ESA FECHA
+    //==== EXISTÍA Y SE DECIDIÓ NO DECLARARLA.
+    function eliminarComprobante(indice, documento_id){
+        if(!gruposPendientes[indice]){ return; }
+
+        gruposPendientes[indice].comprobantes =
+            gruposPendientes[indice].comprobantes.filter((c) => c.documento_id != documento_id);
     }
 
     //============= ABRIR MODAL CLIENTE =============
     async function openModalResumenes(){
 
         $("#modal_resumenes").modal("show");
-        clearTableComprobantes();
+        gruposPendientes = [];
+        pintarGrupos();
         await  isActive();
     }
 
-    //===== OBTENER COMPROBANTES =====
-    async function getComprobantes(fechaComprobantes){
-        try {
-            const url       =   route('ventas.resumenes.getComprobantes',{fechaComprobantes,sede_id:sedeSeleccionada()})
-            const response  =   await axios.get(url);
-            listComprobantes    =   response.data.success;
+    //====== TRAER TODO LO PENDIENTE DE LA SEDE, AGRUPADO POR FECHA ======
+    let metaPendientes = {};
 
-            //====== LA SEDE SIN SERIE DE BOLETA LLEGA CON message Y LA LISTA VACÍA ======
-            if(response.data.message){
-                toastr.error(response.data.message,'SERIE NO CONFIGURADA');
+    async function buscarPendientes(){
+        try {
+            mostrarAnimacion();
+            toastr.clear();
+
+            const dias  =   document.querySelector('#dias_pendientes').value || 30;
+            const url   =   route('ventas.resumenes.getPendientes',{sede_id:sedeSeleccionada(), dias:dias});
+            const res   =   await axios.get(url);
+
+            metaPendientes   = res.data;
+            gruposPendientes = [];
+
+            //====== SIN SERIE R NO SE PUEDE NUMERAR: SE AVISA Y NO SE CONTINUA ======
+            if(!res.data.success){
+                pintarGrupos();
+                toastr.error(res.data.message,'NO SE PUEDE CONTINUAR',{timeOut:0});
+                return;
             }
 
-            pintarTableComprobantes();
+            gruposPendientes = (res.data.grupos || []).map((g) => {
+                g.seleccionado = true;
+                return g;
+            });
+
+            pintarGrupos();
+
         } catch (error) {
-            console.error('Error al obtener comprobantes: ', error);
+            toastr.error(error.message,'ERROR EN LA PETICION BUSCAR PENDIENTES');
+        } finally {
+            ocultarAnimacion();
         }
+    }
+
+    //====== LOS GRUPOS QUE REALMENTE SE VAN A EMITIR ======
+    function gruposAEmitir(){
+        return gruposPendientes.filter((g) => g.seleccionado && g.comprobantes.length > 0);
+    }
+
+    function hayAnuladas(){
+        return gruposAEmitir().some((g) =>
+            g.comprobantes.some((c) => c.documento_estado !== 'ACTIVO'));
+    }
+
+    //====== PINTAR UN BLOQUE POR FECHA: DE CADA UNO SALE UN RESUMEN ======
+    function pintarGrupos(){
+        const plan      = document.querySelector('#plan_resumenes');
+        const avisoAnt  = document.querySelector('#aviso_anteriores');
+        const avisoAnu  = document.querySelector('#aviso_anuladas');
+
+        plan.style.display     = 'none';
+        avisoAnt.style.display = 'none';
+        avisoAnu.style.display = 'none';
+        contenedorGrupos.innerHTML = '';
+
+        if(gruposPendientes.length === 0){
+            contenedorGrupos.innerHTML =
+                '<div class="text-center text-muted p-4">NO HAY BOLETAS PENDIENTES EN EL PERIODO CONSULTADO.</div>';
+            return;
+        }
+
+        const aEmitir   = gruposAEmitir();
+        const serieR    = metaPendientes.serie_resumen || '';
+        const base      = parseInt(metaPendientes.correlativo_siguiente, 10) || 0;
+
+        //====== SE DICE DE ANTEMANO CUANTOS DOCUMENTOS SE VAN A EMITIR ======
+        if(aEmitir.length > 0){
+            plan.innerHTML = '<b>SE CREARAN ' + aEmitir.length + ' RESUMEN(ES)</b> PARA LA SERIE ' + serieR +
+                ', UNO POR CADA FECHA: SUNAT NO ADMITE VARIAS FECHAS EN UN MISMO RESUMEN.';
+            plan.style.display = 'block';
+        }
+
+        if(metaPendientes.anteriores > 0){
+            avisoAnt.innerHTML = 'HAY <b>' + metaPendientes.anteriores + '</b> BOLETA(S) PENDIENTES ANTERIORES AL ' +
+                metaPendientes.desde + '. AMPLIE LOS DIAS HACIA ATRAS PARA INCLUIRLAS.';
+            avisoAnt.style.display = 'block';
+        }
+
+        if(hayAnuladas()){
+            avisoAnu.innerHTML = 'HAY COMPROBANTES <b>ANULADOS</b> EN LA SELECCION. QUITELOS ANTES DE CONTINUAR: ' +
+                'DECLARARLOS COMO ALTA ANTE SUNAT SERIA DECLARAR UNA VENTA QUE NO EXISTE.';
+            avisoAnu.style.display = 'block';
+        }
+
+        let html = '';
+        let nEmitido = 0;
+
+        gruposPendientes.forEach((g, i) => {
+            const activo = g.seleccionado && g.comprobantes.length > 0;
+            if(activo){ nEmitido++; }
+
+            const etiqueta = (activo && base) ? (serieR + '-' + (base + nEmitido - 1)) : '--';
+            const total    = g.comprobantes.reduce((a,c) => a + parseFloat(c.documento_total || 0), 0);
+
+            html += '<div class="ibox" style="margin-bottom:12px;">';
+            html += '  <div class="ibox-title" style="padding:10px 15px;">';
+            html += '    <label style="margin:0;font-weight:600;">';
+            html += '      <input type="checkbox" class="chk-grupo" data-indice="' + i + '" ' + (g.seleccionado ? 'checked' : '') + '> ';
+            html += '      ' + g.fecha + ' &middot; ' + g.comprobantes.length + ' BOLETA(S) &middot; S/ ' + total.toFixed(2);
+            html += '    </label>';
+            html += '    <span class="pull-right badge badge-primary">' + etiqueta + '</span>';
+            html += '  </div>';
+            html += '  <div class="ibox-content" style="padding:0;">';
+            html += '    <table class="table table-sm" style="margin:0;">';
+            html += '      <thead><tr>';
+            html += '        <th>#</th><th>Numero</th><th>Estado</th><th>Moneda</th>';
+            html += '        <th>T.gravado</th><th>T.Igv</th><th>T.Total</th><th></th>';
+            html += '      </tr></thead><tbody>';
+
+            g.comprobantes.forEach((c) => {
+                const anulada = c.documento_estado !== 'ACTIVO';
+                html += '<tr class="' + (anulada ? 'bg-danger text-white' : '') + '">';
+                html += '  <th scope="row">' + c.documento_id + '</th>';
+                html += '  <td>' + c.documento_serie + '-' + c.documento_correlativo + '</td>';
+                html += '  <td><span class="badge ' + (anulada ? 'badge-danger' : 'badge-success') + '">' + c.documento_estado + '</span></td>';
+                html += '  <td>' + c.documento_moneda + '</td>';
+                html += '  <td>' + c.documento_subtotal + '</td>';
+                html += '  <td>' + c.documento_igv + '</td>';
+                html += '  <td>' + c.documento_total + '</td>';
+                html += '  <td><i class="btn btn-danger btn-xs fas fa-trash-alt btn-delete-document"';
+                html += '       data-documento-id="' + c.documento_id + '" data-indice="' + i + '"></i></td>';
+                html += '</tr>';
+            });
+
+            html += '      </tbody></table>';
+            html += '  </div>';
+            html += '</div>';
+        });
+
+        contenedorGrupos.innerHTML = html;
     }
 
     //====== VERIFICAR SI ESTAN ACTIVOS LOS RESÚMENES =======
@@ -593,41 +824,19 @@
         }
     }
 
-    //====== PINTAR TABLE COMPROBANTES =====
-    function pintarTableComprobantes(){
-        clearTableComprobantes();
-
-        let tbody = `<tr>`;
-        listComprobantes.forEach((c)=>{
-            tbody   +=  `
-                                <th scope="row">${c.documento_id}</th>
-                                <td>${c.documento_serie}-${c.documento_correlativo}</td>
-                                <td>${c.documento_moneda}</td>
-                                <td>${c.documento_subtotal}</td>
-                                <td>${c.documento_igv}</td>
-                                <td>${c.documento_total}</td>
-                                <td>
-                                    <i class="btn btn-danger fas fa-trash-alt btn-delete-document" data-documento-id=${c.documento_id}></i>
-                                </td>
-                            </tr>
-                        `;
-        })
-
-        bodyTableSearchComprobantes.innerHTML   =   tbody;
-    }
-
-    //======== LIMPIAR TABLE COMPROBANTES =========
-    function clearTableComprobantes(){
-        while (bodyTableSearchComprobantes.firstChild) {
-            bodyTableSearchComprobantes.removeChild(bodyTableSearchComprobantes.firstChild)
-        }
-    }
-
     function validaciones(){
         let validacion  =   true;
-        //======= VALIDAR DETALLE DEL RESUMEN =======
-        if(listComprobantes.length==0){
-            toastr.error('NO HAY COMPROBANTES EN EL RESUMEN','ERROR');
+
+        //======= AL MENOS UNA FECHA SELECCIONADA =======
+        if(gruposAEmitir().length === 0){
+            toastr.error('NO HAY NINGUNA FECHA SELECCIONADA CON COMPROBANTES','ERROR');
+            validacion = false;
+        }
+
+        //======= NINGUNA ANULADA. ES UNA CORTESIA: LA GARANTIA ESTA EN store(),
+        //======= QUE VUELVE A COMPROBARLO CONTRA LA BASE ANTES DE GRABAR.
+        if(hayAnuladas()){
+            toastr.error('HAY COMPROBANTES ANULADOS EN LA SELECCION. QUITELOS ANTES DE CONTINUAR.','ERROR',{timeOut:0});
             validacion = false;
         }
 

@@ -27,35 +27,26 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-4">
-                        <label for="fecha_comprobante">Fecha de Emisión de comprobantes</label>
-                        <input id="fecha_comprobante" type="date" class="form-control" value="<?php echo date('Y-m-d'); ?>">
+                    {{-- Ya no se pide una fecha: se traen TODAS las pendientes y se
+                         agrupan por fecha de emisión, porque SUNAT no admite varias
+                         fechas en un mismo resumen. El tope evita que un dato viejo
+                         dispare una decena de resúmenes de golpe. --}}
+                    <div class="col-3">
+                        <label for="dias_pendientes">Días hacia atrás</label>
+                        <input id="dias_pendientes" type="number" min="1" max="365" class="form-control" value="30">
                     </div>
-                    <div class="col-4 d-flex align-items-end">
-                        <button class="btn btn-primary" id="btn-get-comprobantes">Buscar comprobantes</button>
+                    <div class="col-5 d-flex align-items-end">
+                        <button class="btn btn-primary" id="btn-get-comprobantes">Buscar pendientes</button>
                     </div>
                 </div>
 
-                <div class="row mt-3">
-                    <div class="col">
-                        <table class="table table-search-comprobantes">
-                            <thead>
-                              <tr>
-                                <th scope="col">#</th>
-                                <th scope="col">Número</th>
-                                <th scope="col">Moneda</th>
-                                <th scope="col">T.gravado</th>
-                                <th scope="col">T.Igv</th>
-                                <th scope="col">T.Total</th>
-                                <th></th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                             
-                            </tbody>
-                          </table>
-                    </div>
-                </div>
+                {{-- Qué se va a emitir, dicho antes de emitir nada --}}
+                <div id="plan_resumenes" class="alert alert-info mt-3" style="display:none;"></div>
+                <div id="aviso_anteriores" class="alert alert-warning mt-3" style="display:none;"></div>
+                <div id="aviso_anuladas" class="alert alert-danger mt-3" style="display:none;"></div>
+
+                {{-- Un bloque por fecha: de cada uno sale un resumen --}}
+                <div id="grupos_pendientes" class="mt-3"></div>
 
               
             </div>

@@ -27,6 +27,12 @@ class ResumenController extends Controller
     const PERMISO_RESUMENES   = 'venta.resumenes.index';
     const PERMISO_TODAS_SEDES = 'venta.resumenes.todas_sedes';
 
+    //====== tabladetalles.id DE LA BOLETA DE VENTA ELECTRÓNICA ======
+    const TIPO_VENTA_BOLETA = '128';
+
+    //====== CUÁNTOS DÍAS HACIA ATRÁS MIRA EL BUSCADOR DE PENDIENTES ======
+    const DIAS_PENDIENTES = 30;
+
     /**
      * El envío nocturno (comando resumenes:send) entra sin sesión. Todas las rutas
      * de la pantalla están detrás del middleware 'auth', así que si no hay usuario
@@ -144,27 +150,83 @@ class ResumenController extends Controller
     }
 
 
+    /**
+     * La serie de boleta activa de una sede, o null si no tiene ninguna.
+     */
+    protected function serieBoleta($sede_id)
+    {
+        $series = DB::select('SELECT
+                    enf.*
+                    from empresa_numeracion_facturaciones as enf
+                    inner join tabladetalles as td on td.id = enf.tipo_comprobante
+                    where
+                    enf.sede_id = ?
+                    AND td.parametro = "B"
+                    AND td.tabla_id = 21
+                    AND enf.estado = "ACTIVO"',
+                    [$sede_id]);
+
+        return count($series) === 0 ? null : $series[0];
+    }
+
+    /**
+     * Las boletas que todavía no están en ningún resumen activo.
+     *
+     * Un único sitio para los filtros, porque de aquí comen la pantalla y el
+     * envío nocturno: lo que se excluya aquí queda excluido en los dos.
+     *
+     * cd.estado <> 'ANULADO' es el filtro que faltaba. En el sistema de
+     * referencia, una boleta anulada a las 07:47 entró esa misma noche en el
+     * resumen automático de las 23:40 y se declaró como válida; SUNAT la
+     * aceptó y ahí sigue.
+     */
+    protected function comprobantesPendientes($serie, $fechaDesde, $fechaHasta)
+    {
+        return DB::select('SELECT
+                    cd.id as documento_id,
+                    cd.serie as documento_serie,
+                    cd.correlativo as documento_correlativo,
+                    cd.fecha_documento as documento_fecha,
+                    cd.estado as documento_estado,
+                    cd.tipo_venta_id as documento_tipo_venta_id,
+                    td.parametro as documento_moneda,
+                    cd.total_pagar as documento_total,
+                    cd.total_igv as documento_igv,
+                    cd.total as documento_subtotal,
+                    cd.documento_cliente as documento_doc_cliente
+                    FROM cotizacion_documento as cd
+                    INNER JOIN tabladetalles as td on td.id = cd.moneda
+                    WHERE
+                    cd.fecha_documento >= ?
+                    AND cd.fecha_documento <= ?
+                    AND cd.anticipo_consumido_id IS NULL
+                    AND cd.serie = ?
+                    AND sunat = "0"
+                    AND cd.estado <> "ANULADO"
+                    AND td.tabla_id = 1
+                    AND cd.id NOT IN (
+                        SELECT
+                            rd.documento_id
+                        FROM
+                            resumenes_detalles AS rd
+                        WHERE rd.estado = "ACTIVO"
+                    )
+                    ORDER BY cd.fecha_documento, cd.correlativo',
+                    [$fechaDesde, $fechaHasta, $serie]);
+    }
+
     public function getComprobantes($fechaComprobantes,$sede_id){
 
         $this->autorizarResumenes();
         $sede_id    =   $this->sedeAutorizada($sede_id);
 
-        $series     =   DB::select('SELECT
-                        enf.*
-                        from empresa_numeracion_facturaciones as enf
-                        inner join tabladetalles as td on td.id = enf.tipo_comprobante
-                        where
-                        enf.sede_id = ?
-                        AND td.parametro = "B"
-                        AND td.tabla_id = 21
-                        AND enf.estado = "ACTIVO"',
-                        [$sede_id]);
+        $enf        =   $this->serieBoleta($sede_id);
 
         //====== SIN SERIE DE BOLETA NO HAY NADA QUE RESUMIR. SE AVISA EN VEZ DE
         //====== REVENTAR CON "Undefined offset: 0" AL INDEXAR UN RESULTADO VACÍO.
         //====== 'success' SIGUE SIENDO EL ARRAY DE COMPROBANTES: EL COMANDO Y EL JS
         //====== LO RECORREN TAL CUAL, ASÍ QUE AQUÍ VA VACÍO, NO false.
-        if(count($series) === 0){
+        if(!$enf){
             return response()->json([
                 'success' => [],
                 'fecha'   => $fechaComprobantes,
@@ -173,34 +235,8 @@ class ResumenController extends Controller
             ]);
         }
 
-        $enf        =   $series[0];
-
-        //======= SELECCIONAMOS LOS COMPROBANTES DE LA FECHA RESPECTIVA ======
-        //===== QUE NO SE ENCUENTREN REGISTRADOS EN NINGÚN DETALLE DE RESUMEN ========
-        $comprobantes   =   DB::select('SELECT
-                            cd.id as documento_id,
-                            cd.serie as documento_serie,
-                            cd.correlativo as documento_correlativo,
-                            td.parametro as documento_moneda,
-                            cd.total_pagar as documento_total,
-                            cd.total_igv as documento_igv,
-                            cd.total as documento_subtotal,
-                            cd.documento_cliente as documento_doc_cliente
-                            FROM cotizacion_documento as cd
-                            INNER JOIN tabladetalles as td on td.id = cd.moneda
-                            WHERE
-                            cd.fecha_documento = ?
-                            AND cd.anticipo_consumido_id IS NULL
-                            AND cd.serie = ?
-                            AND sunat = "0"
-                            AND td.tabla_id = 1
-                            AND cd.id NOT IN (
-                                SELECT
-                                    rd.documento_id
-                                FROM
-                                    resumenes_detalles AS rd
-                                WHERE rd.estado = "ACTIVO"
-                            )',[$fechaComprobantes,$enf->serie]);
+        //======= LAS PENDIENTES DE ESA FECHA, SIN ANULADAS ======
+        $comprobantes   =   $this->comprobantesPendientes($enf->serie, $fechaComprobantes, $fechaComprobantes);
 
         return response()->json(['success'=>$comprobantes ,
         'fecha' => $fechaComprobantes]);
@@ -214,6 +250,146 @@ array:3 [
   "sede_id"             => 1
 ]
 */
+    /**
+     * Todas las boletas pendientes de una sede, AGRUPADAS POR FECHA DE EMISIÓN.
+     *
+     * SUNAT no admite varias fechas en un mismo resumen: <cbc:ReferenceDate> es
+     * un elemento de cabecera del RC y las líneas del detalle no llevan fecha.
+     * Por eso se devuelve un grupo por fecha y de cada grupo sale un resumen
+     * distinto; la pantalla lo dice antes de enviar nada.
+     */
+    public function getPendientes($sede_id, $dias = null)
+    {
+        $this->autorizarResumenes();
+        $sede_id    =   $this->sedeAutorizada($sede_id);
+
+        $enf        =   $this->serieBoleta($sede_id);
+
+        if(!$enf){
+            return response()->json([
+                'success'    => false,
+                'grupos'     => [],
+                'anteriores' => 0,
+                'message'    => 'LA SEDE NO TIENE UNA SERIE DE BOLETA ELECTRÓNICA ACTIVA. '
+                              . 'CONFIGÚRELA EN MANTENIMIENTO → NUMERACIÓN DE COMPROBANTES.'
+            ]);
+        }
+
+        //====== LA SERIE R SE COMPRUEBA AQUÍ, ANTES DE DEJAR CONTINUAR, Y NO AL
+        //====== GUARDAR: ASÍ EL USUARIO NO LLEGA A ARMAR UN RESUMEN QUE NO PODRÁ
+        //====== NUMERARSE. getCorrelativo() LANZA SI LA SEDE NO TIENE SERIE R.
+        try {
+            $correlativo    =   $this->getCorrelativo($sede_id);
+        } catch (Throwable $th) {
+            return response()->json([
+                'success'    => false,
+                'grupos'     => [],
+                'anteriores' => 0,
+                'message'    => $th->getMessage()
+            ]);
+        }
+
+        $dias   =   ($dias !== null && (int) $dias > 0) ? (int) $dias : self::DIAS_PENDIENTES;
+        $hasta  =   date('Y-m-d');
+        $desde  =   date('Y-m-d', strtotime('-'.($dias - 1).' days'));
+
+        $comprobantes   =   $this->comprobantesPendientes($enf->serie, $desde, $hasta);
+
+        //====== UN GRUPO POR FECHA = UN RESUMEN POR FECHA ======
+        $grupos =   [];
+        foreach($comprobantes as $c){
+            $fecha  =   substr($c->documento_fecha, 0, 10);
+
+            if(!isset($grupos[$fecha])){
+                $grupos[$fecha] = [
+                    'fecha'        => $fecha,
+                    'cantidad'     => 0,
+                    'total'        => 0,
+                    'comprobantes' => []
+                ];
+            }
+
+            $grupos[$fecha]['cantidad']++;
+            $grupos[$fecha]['total']          +=  (float) $c->documento_total;
+            $grupos[$fecha]['comprobantes'][]  =  $c;
+        }
+        ksort($grupos);
+
+        //====== LO ANTERIOR AL TOPE NO SE OCULTA: SE CUENTA Y SE AVISA ======
+        $anteriores =   $this->comprobantesPendientes(
+                            $enf->serie, '1900-01-01', date('Y-m-d', strtotime($desde.' -1 day')));
+
+        return response()->json([
+            'success'               => true,
+            'serie'                 => $enf->serie,
+            'serie_resumen'         => $correlativo->serie,
+            'correlativo_siguiente' => $correlativo->correlativo,
+            'dias'                  => $dias,
+            'desde'                 => $desde,
+            'hasta'                 => $hasta,
+            'grupos'                => array_values($grupos),
+            'anteriores'            => count($anteriores)
+        ]);
+    }
+
+    /**
+     * Vuelve a comprobar contra la base cada documento que llega en la petición.
+     *
+     * El bloqueo del modal es una cortesía para el usuario; la garantía está
+     * aquí. Se recalcula la lista de pendientes de esa sede y esa fecha y se
+     * exige que todo lo recibido esté dentro: si algo se anuló entre la búsqueda
+     * y el guardado, o si alguien manipuló el envío, no se graba nada.
+     *
+     * @throws Exception
+     */
+    protected function validarComprobantes($comprobantes, $sede_id, $fecha_comprobantes)
+    {
+        if (!is_array($comprobantes) || count($comprobantes) === 0) {
+            throw new Exception('NO HAY COMPROBANTES EN EL RESUMEN.');
+        }
+
+        $enf = $this->serieBoleta($sede_id);
+
+        if (!$enf) {
+            throw new Exception('LA SEDE NO TIENE UNA SERIE DE BOLETA ELECTRÓNICA ACTIVA.');
+        }
+
+        $admisibles = [];
+        foreach ($this->comprobantesPendientes($enf->serie, $fecha_comprobantes, $fecha_comprobantes) as $p) {
+            $admisibles[(int) $p->documento_id] = true;
+        }
+
+        $rechazados = [];
+        foreach ($comprobantes as $c) {
+            $id = isset($c->documento_id) ? (int) $c->documento_id : 0;
+
+            if (!isset($admisibles[$id])) {
+                $rechazados[] = $id;
+            }
+        }
+
+        if (count($rechazados) === 0) {
+            return;
+        }
+
+        //====== SE DICE CUÁL Y POR QUÉ, QUE ES LO QUE FALTABA EN LA PANTALLA ======
+        $detalle = [];
+        foreach (DB::table('cotizacion_documento')
+                    ->whereIn('id', $rechazados)
+                    ->get(['id', 'serie', 'correlativo', 'estado', 'sunat']) as $d) {
+            $detalle[] = $d->serie.'-'.$d->correlativo
+                       . ' ('.($d->estado === 'ANULADO' ? 'ANULADA'
+                              : ($d->sunat !== '0' ? 'YA ENVIADA A SUNAT' : 'NO ADMISIBLE')).')';
+        }
+
+        if (count($detalle) === 0) {
+            $detalle[] = 'ID '.implode(', ', $rechazados);
+        }
+
+        throw new Exception('EL RESUMEN NO SE GRABÓ PORQUE ESTOS COMPROBANTES NO PUEDEN '
+            .'DECLARARSE: '.implode('; ', $detalle).'. VUELVA A BUSCAR LOS PENDIENTES.');
+    }
+
     public function store(Request $request){
 
         //====== FUERA DEL try: UN 403 NO PUEDE ACABAR CONVERTIDO EN JSON 200 ======
@@ -237,6 +413,13 @@ array:3 [
             //====== RECEPCIONANDO COMPROBANTES Y FECHA ======
             $comprobantes       =   json_decode($request->get('comprobantes'));
             $fecha_comprobantes =   $request->get('fecha_comprobantes');
+
+            //====== EL LISTADO LLEGA DESDE EL NAVEGADOR, ASÍ QUE SE VUELVE A
+            //====== CONSTRUIR CONTRA LA BASE Y SE EXIGE QUE CADA DOCUMENTO SIGA
+            //====== SIENDO ADMISIBLE. UNA SOLA COMPROBACIÓN CUBRE TODAS LAS
+            //====== CAUSAS: ANULADA, YA ENVIADA, YA RESUMIDA, DE OTRA FECHA, DE
+            //====== OTRA SERIE O QUE NO ES UNA BOLETA.
+            $this->validarComprobantes($comprobantes, $request->get('sede_id'), $fecha_comprobantes);
 
             //===== BUSCANDO CORRELATIVO DEL COMPROBANTE =====
             $datos_correlativo    =   $this->getCorrelativo($request->get('sede_id'));
@@ -360,10 +543,14 @@ array:3 [
     protected function getCorrelativo($sede_id){
 
 
-        //===== OBTENIENDO EL ÚLTIMO RESUMEN DE LA SEDE EN LA TABLA RESÚMENES =======
+        //===== EL ÚLTIMO RESUMEN DE LA SEDE, POR CORRELATIVO Y NO POR FECHA.
+        //===== latest() ordena por created_at, que tiene resolución de SEGUNDO:
+        //===== generando varios resúmenes seguidos (uno por fecha pendiente) los
+        //===== empates se resolvían al azar y se repetía el correlativo.
         $ultimoResumen  =   DB::table('resumenes')
                             ->where('sede_id',$sede_id)
-                            ->latest()
+                            ->orderByDesc('correlativo')
+                            ->orderByDesc('id')
                             ->first();
 
         //======== EN CASO YA EXISTAN RESÚMENES GENERADOS =====
@@ -413,6 +600,60 @@ Greenter\Model\Response\SummaryResult {#3127 // app\Http\Controllers\Market\Vent
   #ticket: "1740176422672"
 }
 */
+    /**
+     * El código de tipo de documento que se declara para una línea del resumen.
+     *
+     * Sale de cotizacion_documento.tipo_venta_id, no de un literal. Hasta ahora
+     * era '03' fijo y sólo era correcto de rebote, porque la consulta miraba una
+     * tabla y una serie; cualquier cambio en ella habría declarado el documento
+     * equivocado sin avisar.
+     *
+     * Si algo que no es una boleta llega hasta aquí se aborta el envío ENTERO:
+     * más vale no declarar nada que declarar mal una línea.
+     *
+     * @throws Exception
+     */
+    protected function tipoDocumentoDeclarable($comprobante)
+    {
+        if ((string) $comprobante->documento_tipo_venta_id === self::TIPO_VENTA_BOLETA) {
+            return '03';
+        }
+
+        throw new Exception('EL RESUMEN CONTIENE UN DOCUMENTO QUE NO ES UNA BOLETA: '
+            .$comprobante->documento_serie.'-'.$comprobante->documento_correlativo
+            .' (tipo_venta_id '.$comprobante->documento_tipo_venta_id.'). '
+            .'NO SE ENVÍA NADA.');
+    }
+
+    /**
+     * El estado con el que se declara la línea (catálogo 19 de SUNAT).
+     *
+     * Sólo se emite '1' (adición), y sólo para un documento ACTIVO. Los estados
+     * '2' (modificación) y '3' (anulación) exigen que el comprobante se haya
+     * informado antes, y este sistema no guarda en qué resumen se informó cada
+     * boleta de forma fiable, así que emitirlos a ciegas sería peor que no
+     * emitirlos.
+     *
+     * Una boleta anulada ya no debería llegar aquí: la filtra
+     * comprobantesPendientes() y la rechaza validarComprobantes(). Si aun así
+     * aparece — porque se anuló entre el guardado y el envío — se aborta en vez
+     * de declararla como alta, que es exactamente lo que pasó en el sistema de
+     * referencia con la boleta B001-6968.
+     *
+     * @throws Exception
+     */
+    protected function estadoDeclarable($comprobante)
+    {
+        if ($comprobante->documento_estado === 'ACTIVO') {
+            return '1';
+        }
+
+        throw new Exception('EL RESUMEN CONTIENE LA BOLETA '
+            .$comprobante->documento_serie.'-'.$comprobante->documento_correlativo
+            .', QUE ESTÁ '.$comprobante->documento_estado.'. NO SE ENVÍA NADA: '
+            .'ELIMINE EL RESUMEN Y VUELVA A GENERARLO.');
+    }
+
     public function sendSunat(Request $request){
 
         //====== FUERA DEL try: UN 403 NO PUEDE ACABAR CONVERTIDO EN JSON 200 ======
@@ -436,10 +677,15 @@ Greenter\Model\Response\SummaryResult {#3127 // app\Http\Controllers\Market\Vent
                 throw new Exception("ESTE RESUMEN YA FUE ENVIADO A SUNAT!!!");
             }
 
-            //===== OBTENIENDO COMPROBANTES ======
+            //===== OBTENIENDO COMPROBANTES, CON EL TIPO Y EL ESTADO DEL DOCUMENTO =====
+            //===== EL JOIN ES LO QUE PERMITE QUE tipoDoc SALGA DEL DATO Y NO DE UN
+            //===== LITERAL: resumenes_detalles NO GUARDA EL TIPO DE COMPROBANTE.
             $comprobantes   =   DB::select('SELECT
-                                rd.*
+                                rd.*,
+                                cd.tipo_venta_id AS documento_tipo_venta_id,
+                                cd.estado        AS documento_estado
                                 FROM resumenes_detalles AS rd
+                                INNER JOIN cotizacion_documento AS cd ON cd.id = rd.documento_id
                                 WHERE rd.resumen_id = ?',
                                 [$request->get('resumen_id')]);
 
@@ -458,9 +704,9 @@ Greenter\Model\Response\SummaryResult {#3127 // app\Http\Controllers\Market\Vent
                 //====== 1:NUEVO ==== "2:MODIFICAR" ======= 3:ANULAR =====
                 //====== PARA 2,3 DEBE ESTAR PREVIAMENTE INFORMADO EL COMPROBANTE ======
                 $detalle = new SummaryDetail();
-                $detalle->setTipoDoc('03')
+                $detalle->setTipoDoc($this->tipoDocumentoDeclarable($comprobante))
                     ->setSerieNro($comprobante->documento_serie.'-'.$comprobante->documento_correlativo)
-                    ->setEstado('1')
+                    ->setEstado($this->estadoDeclarable($comprobante))
                     ->setClienteTipo('1')
                     ->setClienteNro($comprobante->documento_doc_cliente)
                     ->setTotal($comprobante->documento_total)
@@ -755,20 +1001,45 @@ array:1 [
         }
     }
 
+    /**
+     * Descarga el XML o el CDR de un resumen.
+     *
+     * La fila de la base y el archivo en disco pueden no ir juntos: si el
+     * archivo se pierde, Response::download lanzaba un 500 con la traza. Ahora
+     * se vuelve al listado con un mensaje que dice qué falta y dónde se esperaba.
+     */
+    protected function descargarArchivoResumen($resumen_id, $campo, $etiqueta)
+    {
+        $resumen = Resumen::find($resumen_id);
+
+        if (!$resumen) {
+            return back()->with('message_error', 'EL RESUMEN SOLICITADO NO EXISTE.');
+        }
+
+        $ruta = $resumen->{$campo};
+
+        if (!$ruta) {
+            return back()->with('message_error',
+                'EL RESUMEN '.$resumen->serie.'-'.$resumen->correlativo.' NO TIENE '.$etiqueta.' GUARDADO. '
+                .'SI YA SE ENVIÓ, CONSULTE EL TICKET PARA QUE SUNAT DEVUELVA LA RESPUESTA.');
+        }
+
+        if (!is_file($ruta)) {
+            return back()->with('message_error',
+                'NO SE ENCUENTRA EL ARCHIVO '.$etiqueta.' DEL RESUMEN '
+                .$resumen->serie.'-'.$resumen->correlativo.'. SE ESPERABA EN: '.$ruta.'. '
+                .'LA FILA EXISTE EN LA BASE PERO EL ARCHIVO NO ESTÁ EN EL SERVIDOR.');
+        }
+
+        return Response::download($ruta, basename($ruta), ['Content-Type' => 'text/xml']);
+    }
+
     public function getXml($resumen_id){
 
         $this->autorizarResumenes();
         $this->autorizarResumenPorId($resumen_id);
 
-        $resumen        =   Resumen::find($resumen_id);
-        $nombreArchivo  =   basename($resumen->ruta_xml);
-
-
-        $headers = [
-            'Content-Type' => 'text/xml',
-        ];
-
-        return Response::download($resumen->ruta_xml, $nombreArchivo, $headers);
+        return $this->descargarArchivoResumen($resumen_id, 'ruta_xml', 'XML');
     }
 
     public function getCdr($resumen_id){
@@ -776,14 +1047,7 @@ array:1 [
         $this->autorizarResumenes();
         $this->autorizarResumenPorId($resumen_id);
 
-        $resumen        =   Resumen::find($resumen_id);
-        $nombreArchivo  =   basename($resumen->ruta_cdr);
-
-        $headers = [
-            'Content-Type' => 'text/xml',
-        ];
-
-        return Response::download($resumen->ruta_cdr, $nombreArchivo, $headers);
+        return $this->descargarArchivoResumen($resumen_id, 'ruta_cdr', 'CDR');
     }
 
 
@@ -805,6 +1069,90 @@ array:1 [
         } catch (\Throwable $th) {
             return response()->json(['success'=>false,'message'=>'ERROR AL OBTENER EL DETALLE DEL RESÚMEN',
             'exception'=>$th->getMessage()]);
+        }
+    }
+
+    /**
+     * Deshace un resumen que NUNCA llegó a SUNAT.
+     *
+     * Un resumen aceptado no se toca: sus boletas ya están declaradas y
+     * liberarlas haría que el siguiente envío las declarase por segunda vez.
+     * Dejar sin efecto lo ya informado es una comunicación de baja ante SUNAT,
+     * otro documento que este sistema no emite; borrar la fila aquí no lo haría.
+     *
+     * El borrado es lógico en los dos niveles. En el detalle, poner
+     * resumenes_detalles.estado = 'ANULADO' basta para liberar los documentos:
+     * la consulta de pendientes excluye sólo los detalles 'ACTIVO'. Esa columna
+     * existía desde el principio y no la escribía nadie.
+     */
+    public function destroy(Request $request)
+    {
+        //====== FUERA DEL try: UN 403 NO PUEDE ACABAR CONVERTIDO EN JSON 200 ======
+        $this->autorizarResumenes();
+        $this->autorizarResumenPorId($request->get('resumen_id'));
+
+        try {
+            DB::beginTransaction();
+
+            $resumen = Resumen::find($request->get('resumen_id'));
+
+            if (!$resumen) {
+                throw new Exception('EL RESUMEN NO EXISTE EN LA BD!!!');
+            }
+
+            if ($resumen->estado === 'ANULADO') {
+                throw new Exception('ESTE RESUMEN YA ESTÁ ANULADO.');
+            }
+
+            if ((int) $resumen->send_sunat === 1) {
+                throw new Exception('ESTE RESUMEN YA FUE ENVIADO A SUNAT Y NO SE PUEDE ELIMINAR. '
+                    .'SUS BOLETAS YA ESTÁN DECLARADAS Y VOLVER A ENVIARLAS SERÍA DECLARARLAS '
+                    .'DOS VECES. PARA DEJARLAS SIN EFECTO HAY QUE EMITIR LA COMUNICACIÓN DE '
+                    .'BAJA ANTE SUNAT.');
+            }
+
+            $documentos = DB::table('resumenes_detalles')
+                            ->where('resumen_id', $resumen->id)
+                            ->pluck('documento_id')
+                            ->toArray();
+
+            DB::table('resumenes_detalles')
+                ->where('resumen_id', $resumen->id)
+                ->update(['estado' => 'ANULADO', 'updated_at' => now()]);
+
+            //====== LOS DOCUMENTOS VUELVEN A ESTAR PENDIENTES ======
+            if (count($documentos) > 0) {
+                DB::table('cotizacion_documento')
+                    ->whereIn('id', $documentos)
+                    ->update([
+                        'sunat'             => '0',
+                        'resumen_id'        => null,
+                        'cdr_response_code' => null,
+                        'updated_at'        => now()
+                    ]);
+            }
+
+            //====== RASTRO EN LA CABECERA. EL CORRELATIVO QUEDA CONSUMIDO: ES MÁS
+            //====== SEGURO QUE REUTILIZARLO, PORQUE EL NOMBRE DEL XML DE SUNAT SE
+            //====== FORMA CON ÉL.
+            $resumen->estado             = 'ANULADO';
+            $resumen->anulado_por_id     = Auth::user()->colaborador_id;
+            $resumen->anulado_por_nombre = Auth::user()->usuario;
+            $resumen->anulado_at         = now();
+            $resumen->motivo_anulacion   = substr((string) $request->get('motivo'), 0, 191);
+            $resumen->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'RESUMEN '.$resumen->serie.'-'.$resumen->correlativo.' ELIMINADO. SE '
+                           .'LIBERARON '.count($documentos).' BOLETA(S) PARA VOLVER A RESUMIRLAS.'
+            ]);
+
+        } catch (Throwable $th) {
+            DB::rollback();
+            return response()->json(['success' => false, 'message' => $th->getMessage()]);
         }
     }
 

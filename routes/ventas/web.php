@@ -195,6 +195,7 @@ Route::prefix('ventas')->middleware('auth')->group(function () {
 
         Route::get('index', 'Ventas\ResumenController@index')->name('ventas.resumenes.index');
         Route::get('getComprobantes/{fechaComprobantes}/{sede_id}', 'Ventas\ResumenController@getComprobantes')->name('ventas.resumenes.getComprobantes');
+        Route::get('getPendientes/{sede_id}/{dias?}', 'Ventas\ResumenController@getPendientes')->name('ventas.resumenes.getPendientes');
         Route::get('getStatus/{sede_id}', 'Ventas\ResumenController@isActive')->name('ventas.resumenes.getStatus');
         Route::get('getXml/{resumen_id}', 'Ventas\ResumenController@getXml')->name('ventas.resumenes.getXml');
         Route::get('getCdr/{resumen_id}', 'Ventas\ResumenController@getCdr')->name('ventas.resumenes.getCdr');
@@ -202,7 +203,7 @@ Route::prefix('ventas')->middleware('auth')->group(function () {
 
         Route::post('/store', 'Ventas\ResumenController@store')->name('ventas.resumenes.store');
         Route::post('/consultar', 'Ventas\ResumenController@consultarTicket')->name('ventas.resumenes.consultar');
-        Route::post('/reenviar', 'Ventas\ResumenController@reenviarSunat')->name('ventas.resumenes.reenviar');
+        Route::post('/destroy', 'Ventas\ResumenController@destroy')->name('ventas.resumenes.destroy');
         Route::get('getResumenes', 'Ventas\ResumenController@getResumenes')->name('ventas.resumenes.getResumenes');
         Route::get('getDetalles/{resumen_id}', 'Ventas\ResumenController@getDetallesResumen')->name('ventas.resumenes.getDetalles');
     });
