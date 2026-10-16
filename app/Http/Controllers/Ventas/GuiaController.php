@@ -1058,7 +1058,13 @@ array:14 [
             return $pdf->stream($nombre . '.pdf');
            
         } catch (\Throwable $th) {
-            dd($th);
+            //====== MISMO CRITERIO QUE EL COMPROBANTE: DETALLE AL LOG, 404 AL
+            //====== CLIENTE. ESTA SÍ EXIGE SESIÓN, PERO EL PDF SE ABRE EN UNA
+            //====== PESTAÑA NUEVA, DONDE UN MENSAJE EN PANTALLA NO SE VERÍA.
+            \Illuminate\Support\Facades\Log::error('ventas.guiasremision.show id=' . $id . ': ' . $th->getMessage()
+                . ' [' . $th->getFile() . ':' . $th->getLine() . ']');
+
+            abort(404);
         }
 
         $name = $guia->serie . "-" . $guia->correlativo . '.pdf';

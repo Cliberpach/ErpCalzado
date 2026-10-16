@@ -1524,7 +1524,15 @@ array:27 [
 
             return $pdf->stream($nombre);
         } catch (Throwable $th) {
-            dd($th);
+            //====== ESTA RUTA ESTÁ FUERA DE 'auth': CUALQUIERA PUEDE PEDIRLA. ======
+            //====== EL DETALLE VA AL LOG, EN UNA LÍNEA Y SIN TRAZA; AL CLIENTE NO
+            //====== LE LLEGA NADA. UN 404 ES LA RESPUESTA QUE MENOS INFORMA: ES LA
+            //====== MISMA QUE PARA UN ID INEXISTENTE, ASÍ QUE NO DELATA SI EL
+            //====== COMPROBANTE EXISTE NI POR QUÉ FALLÓ.
+            \Illuminate\Support\Facades\Log::error('ventas.documento.comprobante id=' . $id . ': ' . $th->getMessage()
+                . ' [' . $th->getFile() . ':' . $th->getLine() . ']');
+
+            abort(404);
         }
     }
 
@@ -2881,7 +2889,11 @@ array:27 [
 
             return view('ventas.documentos.cambios_tallas.index', compact('documento', 'detalles', 'cambios_tallas'));
         } catch (\Throwable $th) {
-            dd($th->getMessage());
+            //====== EL catch NO DEVOLVÍA NADA: EL dd() ERA LA ÚNICA SALIDA. ======
+            \Illuminate\Support\Facades\Log::error('ventas.documento.cambiarTallas.create id=' . $documento_id . ': ' . $th->getMessage()
+                . ' [' . $th->getFile() . ':' . $th->getLine() . ']');
+
+            return back()->with('message_error', 'NO SE PUDO ABRIR EL CAMBIO DE TALLAS.');
         }
     }
 

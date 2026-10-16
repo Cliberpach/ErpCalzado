@@ -318,7 +318,9 @@ array:1 [
 
             return $pdf->stream('etiquetas.pdf');
         } catch (\Throwable $th) {
-            dd($th->getMessage());
+            \Illuminate\Support\Facades\Log::error('almacenes.traslados.generarEtiquetas id=' . $id . ': ' . $th->getMessage()
+                . ' [' . $th->getFile() . ':' . $th->getLine() . ']');
+
 
 
             return redirect()->route('almacenes.traslados.index');

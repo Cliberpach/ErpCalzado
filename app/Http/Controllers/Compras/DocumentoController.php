@@ -517,7 +517,8 @@ class DocumentoController extends Controller
             Log::info($e);
             DB::rollBack();
             Session::flash('error',$e->getMessage()."dddddd");
-            dd($e->getMessage());
+            \Illuminate\Support\Facades\Log::error('compras.documento.store: ' . $e->getMessage()
+                . ' [' . $e->getFile() . ':' . $e->getLine() . ']');
             return redirect()->route('compras.documento.index')->with('guardar', 'error');
         }
     }

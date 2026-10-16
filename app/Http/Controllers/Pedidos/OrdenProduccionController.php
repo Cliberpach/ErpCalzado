@@ -70,7 +70,12 @@ class OrdenProduccionController extends Controller
             return $pdf->stream('PROGRAMACIÓN_PRODUCCIÓN.pdf');
 
         } catch (\Throwable $th) {
-            dd($th->getMessage());
+            //====== EL MÉTODO SÓLO DEVUELVE UN PDF: NO HAY PANTALLA DONDE PONER
+            //====== UN MENSAJE, ASÍ QUE 404 Y EL DETALLE AL LOG.
+            \Illuminate\Support\Facades\Log::error('pedidos.ordenes.pdf id=' . $orden_produccion_id . ': ' . $th->getMessage()
+                . ' [' . $th->getFile() . ':' . $th->getLine() . ']');
+
+            abort(404);
         }
     }
 

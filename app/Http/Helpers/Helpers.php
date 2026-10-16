@@ -1114,7 +1114,13 @@ if (!function_exists('enviarGuiaapi')) {
             // Manejar la respuesta aquí
             dd($response->getBody()->getContents());
         } catch (RequestException $e) {
-            dd($e->getMessage(), $e->getTraceAsString());
+            //====== VOLCABA getTraceAsString() AL NAVEGADOR: LA TRAZA ENTERA. ======
+            //====== AHORA UNA LÍNEA AL LOG Y SE RELANZA, PARA QUE LO TRATE QUIEN
+            //====== LLAMÓ EN VEZ DE MORIR AQUÍ ESCUPIENDO EL INTERIOR DEL SERVIDOR.
+            \Illuminate\Support\Facades\Log::error('enviarGuiaapi: ' . $e->getMessage()
+                . ' [' . $e->getFile() . ':' . $e->getLine() . ']');
+
+            throw $e;
         }
 
         $estado = $response->getStatusCode();

@@ -765,7 +765,9 @@ array:7 [
 
             return $pdf->stream('etiquetas.pdf');
         } catch (\Throwable $th) {
-            dd($th->getMessage());
+            \Illuminate\Support\Facades\Log::error('almacenes.nota_ingreso.generarEtiquetas id=' . $nota_id . ': ' . $th->getMessage()
+                . ' [' . $th->getFile() . ':' . $th->getLine() . ']');
+
             Session::flash('nota_ingreso_error_message', 'ERROR AL GENERAR LAS ETIQUETAS ADHESIVAS');
             Session::flash('nota_ingreso_error_exception', $th->getMessage());
 

@@ -141,7 +141,16 @@ array:6 [ // app\Http\Controllers\Market\Ventas\ConsultarComprobanteController.p
         }
 
         if (count($documento) === 0) {
-            dd('DOCUMENTO NO ENCONTRADO');
+            //====== LA CONSULTA DE COMPROBANTES ES PUBLICA: ESTAS TRES RUTAS
+            //====== (pdf, xml, cdr) NO LLEVAN auth. EL dd() DEVOLVIA 16 KB DE
+            //====== VarDumper A CUALQUIERA QUE PIDIERA UN COMPROBANTE QUE NO
+            //====== EXISTE. MISMO CRITERIO QUE EN EL VOUCHER: DETALLE AL LOG Y
+            //====== UN 404, QUE NO DELATA SI EL COMPROBANTE EXISTE O NO.
+            \Illuminate\Support\Facades\Log::error('consultarComprobante: no se encontro '
+                . $tipo_doc . ' ' . $serie . '-' . $correlativo
+                . ' (fecha ' . $fecha_emision . ', doc ' . $doc_cliente . ', total ' . $monto_total . ')');
+
+            abort(404);
         }
 
         return $documento[0];

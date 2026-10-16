@@ -102,7 +102,9 @@ class ProductoController extends Controller
 
             return DataTables::of($ventas)->make(true);
         } catch (\Exception $ex) {
-            dd($ex->getMessage());
+            \Illuminate\Support\Facades\Log::error('reportes.producto.llenarVentas: ' . $ex->getMessage()
+                . ' [' . $ex->getFile() . ':' . $ex->getLine() . ']');
+
             return response()->json([
                 "data" => [],
                 "draw" => 0,
@@ -142,7 +144,9 @@ class ProductoController extends Controller
             }
             return DataTables::of($coleccion)->make(true);
         } catch (\Exception $ex) {
-            dd($ex->getMessage());
+            \Illuminate\Support\Facades\Log::error('reportes.producto.llenarNotasCredito: ' . $ex->getMessage()
+                . ' [' . $ex->getFile() . ':' . $ex->getLine() . ']');
+
             return response()->json([
                 "data" => [],
                 "draw" => 0,
@@ -538,7 +542,10 @@ class ProductoController extends Controller
 
             return $pdf->stream('etiquetas.pdf');
         } catch (\Throwable $th) {
-            dd($th->getMessage());
+            \Illuminate\Support\Facades\Log::error('reportes.producto.getAdhesivos: ' . $th->getMessage()
+                . ' [' . $th->getFile() . ':' . $th->getLine() . ']');
+
+            abort(404);
         }
     }
 
